@@ -1,0 +1,73 @@
+# ============================================================
+# docker-compose.yml — Arranque Seguro
+#
+# Orquesta los servicios backend (FastAPI) y frontend (nginx)
+# conectados mediante la red interna arranque-seguro-net.
+#
+# Uso rápido:
+#   docker compose up --build          # levanta ambos servicios
+#   docker compose up --build backend  # sólo backend
+#   docker compose down                # detiene y elimina contenedores
+#
+# Puertos expuestos al host:
+#   http://localhost:8000  → API FastAPI  (backend)
+#   http://localhost:8080  → App React    (frontend via nginx)
+# ============================================================
+
+networks:
+  arranque-seguro-net:
+    driver: bridge
+
+services:
+
+  # ----------------------------------------------------------
+  # Backend — FastAPI + Uvicorn
+  # ----------------------------------------------------------
+  backend:
+    build:
+      # Contexto raíz para que el Dockerfile acceda a backend/ desde /app/
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    # Carga .env desde la raíz si existe; si no, el backend usa los
+    # defaults seguros definidos en el código (modo sin IA, fallback local).
+    # `required: false` garantiza que el stack levante sin archivo .env.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PYTHONPATH=/app
+      - APP_ENV=production
+    healthcheck:
+      # Usa urllib.request de stdlib (no requiere curl/wget en la imagen slim)
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - arranque-seguro-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # Frontend — React SPA servida por nginx
+  # (también actúa como reverse proxy hacia /api/ → backend)
+  # ----------------------------------------------------------
+  frontend:
+    build:
+      # Contexto raíz para que el Dockerfile acceda a frontend/nginx.conf
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - arranque-seguro-net
+    restart: unless-stopped

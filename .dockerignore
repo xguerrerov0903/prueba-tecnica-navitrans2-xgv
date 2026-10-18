@@ -1,0 +1,38 @@
+# ============================================================
+# .dockerignore (raíz) — Arranque Seguro
+# Excluye artefactos generados, secretos y herramientas de dev
+# para mantener el contexto de compilación rápido y seguro.
+# ============================================================
+
+# Control de versiones
+.git/
+.gitignore
+
+# Secretos — NUNCA incluir en la imagen
+.env
+.env.*
+!.env.example
+
+# Python — artefactos compilados y caché
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+**/.venv/
+**/*.egg-info/
+**/dist-info/
+
+# Frontend — dependencias y bundle generado
+frontend/node_modules/
+frontend/dist/
+
+# IDEs y herramientas locales
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentación y archivos de entrega (no necesarios en runtime)
+README.md
+ENTREGA.md
+plantillas/
