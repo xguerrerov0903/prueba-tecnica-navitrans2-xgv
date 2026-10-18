@@ -24,6 +24,7 @@ Se adoptó una **Arquitectura Hexagonal (Puertos y Adaptadores)** con estricta s
 backend/app/
 ├── domain/                  # Lógica de Negocio Pura (Sin I/O, 100% determinística)
 │   ├── models.py            # Esquemas Pydantic v2 y Enums para todas las variables
+│   ├── presets.py           # Perfiles oficiales de prueba precargados (docs/datos-de-prueba.md)
 │   └── rules_engine.py      # Motor de evaluación R1-R9, contradicciones C1-C7 y filtros de seguridad
 ├── services/                # Servicios de Aplicación y Adaptadores Secundarios
 │   ├── package_generator.py # Generación de DECISIONES, LINEAMIENTOS, INSTRUCCIONES_IA y .gitignore

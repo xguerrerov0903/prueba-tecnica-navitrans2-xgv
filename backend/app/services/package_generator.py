@@ -1,5 +1,5 @@
 """
-Document package generator for the Arranque Seguro prototyping framework.
+Document package generator for the "Arranque Seguro" governance platform.
 
 Generates the 4 standard project artifacts:
 1. DECISIONES.md: Record of architectural, business, and security decisions made in the wizard.

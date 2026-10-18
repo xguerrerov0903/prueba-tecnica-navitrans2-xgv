@@ -1,5 +1,6 @@
 /**
- * TypeScript data types synchronized 1:1 with backend domain models (Pydantic).
+ * TypeScript data types synchronized 1:1 with backend domain models (Pydantic)
+ * for the "Arranque Seguro" governance platform.
  * Source file: backend/app/domain/models.py
  */
 

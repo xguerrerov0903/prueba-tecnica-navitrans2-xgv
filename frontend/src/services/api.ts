@@ -1,5 +1,5 @@
 /**
- * HTTP client service to communicate with the Arranque Seguro REST API.
+ * HTTP client service to communicate with the "Arranque Seguro" REST API.
  * Includes local fallback for official profiles and binary ZIP downloads.
  */
 

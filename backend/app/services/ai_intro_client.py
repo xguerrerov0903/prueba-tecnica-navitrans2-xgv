@@ -1,5 +1,5 @@
 """
-Resilient client for Navitrans' optional AI copywriting service.
+Resilient HTTP client for the optional AI copywriting service in the "Arranque Seguro" governance platform.
 
 Security and Privacy Policies:
 1. Token is strictly read from environment variables (NAVITRANS_AI_TOKEN).

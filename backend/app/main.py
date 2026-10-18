@@ -1,5 +1,5 @@
 """
-FastAPI application entrypoint for Arranque Seguro.
+FastAPI application entrypoint for the "Arranque Seguro" governance platform.
 
 Configures the FastAPI instance, permissive CORS middleware for local
 development (exposing the Content-Disposition header for ZIP downloads),

@@ -1,5 +1,5 @@
 """
-Domain models for the Navitrans prototype evaluation tool.
+Domain models and API response schemas for the "Arranque Seguro" governance platform.
 
 All models use Pydantic v2. Input types use enums for every selectable field
 so the API never accepts out-of-range strings. Output types carry enough
@@ -9,7 +9,7 @@ information to reconstruct the full audit trail of a rule evaluation.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -169,3 +169,33 @@ class EvaluationResult(BaseModel):
     active_integrations: list[Integration] # Only integrations actually chosen (R9)
     sanitized_description: str             # description with injection sentences removed
     sanitized_owner: str                   # owner reduced to name + corporate email
+
+
+# ---------------------------------------------------------------------------
+# API Response Schemas
+# ---------------------------------------------------------------------------
+
+class HealthResponse(BaseModel):
+    """Operational health check payload."""
+
+    status: str
+    app: str
+    version: str
+
+
+class ProfileItem(BaseModel):
+    """Official preloaded evaluation profile item for quick selection."""
+
+    id: str
+    title: str
+    description: str
+    request: ProjectRequest
+
+
+class PackageResponse(BaseModel):
+    """Full generation payload including evaluation, Markdown files, and AI intro metadata."""
+
+    evaluation: EvaluationResult
+    files: dict[str, str]
+    intro_source: str
+    intro_fallback_reason: Optional[str] = None

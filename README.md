@@ -122,6 +122,7 @@ prueba-tecnica-navitrans2-xgv/
 │   │   ├── api/routes.py            # Adaptadores REST (/api/evaluate, /api/generate, /api/download-zip)
 │   │   ├── domain/
 │   │   │   ├── models.py            # Esquemas Pydantic v2 inmutables y Enums tipados
+│   │   │   ├── presets.py           # Perfiles oficiales de prueba precargados (docs/datos-de-prueba.md)
 │   │   │   └── rules_engine.py      # Motor de reglas funcional puro (R1-R9, C1-C7, Sanitización)
 │   │   ├── services/
 │   │   │   ├── package_generator.py # Generador de artefactos Markdown y empaquetador ZIP en memoria

@@ -1,5 +1,5 @@
 """
-Rules engine for the Navitrans prototype evaluation tool.
+Deterministic business rules engine (R1-R9) and contradiction validator for the "Arranque Seguro" governance platform.
 
 Public API
 ----------
