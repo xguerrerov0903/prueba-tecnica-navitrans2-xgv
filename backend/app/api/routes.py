@@ -1,12 +1,12 @@
 """
-Rutas de la API REST para Arranque Seguro.
+REST API routes for Arranque Seguro.
 
 Endpoints:
-- GET /api/health: Comprobación de estado y versión del servicio.
-- GET /api/profiles: Lista de los 3 perfiles oficiales de datos-de-prueba.md para precarga rápida.
-- POST /api/evaluate: Evaluación pura del proyecto según reglas R1-R9.
-- POST /api/generate-package: Evaluación y generación de los 4 archivos del paquete con introducción IA/fallback.
-- POST /api/download-zip: Empaquetado y descarga del ZIP generado estrictamente en memoria.
+- GET /api/health: Service health check and version.
+- GET /api/profiles: Official test profiles list from datos-de-prueba.md for quick-fill.
+- POST /api/evaluate: Pure project evaluation against R1-R9 rules.
+- POST /api/generate-package: Evaluation and 4-file package generation with AI/fallback intro.
+- POST /api/download-zip: Strictly in-memory ZIP package build and download.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ router = APIRouter()
 
 
 # ---------------------------------------------------------------------------
-# Modelos de Respuesta de la API
+# API Response Models
 # ---------------------------------------------------------------------------
 
 class HealthResponse(BaseModel):
@@ -66,7 +66,7 @@ class PackageResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Perfiles Oficiales Precargados (docs/datos-de-prueba.md)
+# Preloaded Official Profiles (docs/datos-de-prueba.md)
 # ---------------------------------------------------------------------------
 
 OFFICIAL_PROFILES: list[ProfileItem] = [
@@ -136,19 +136,19 @@ OFFICIAL_PROFILES: list[ProfileItem] = [
 
 
 # ---------------------------------------------------------------------------
-# Funciones Auxiliares
+# Helper Functions
 # ---------------------------------------------------------------------------
 
 def _sanitize_filename_slug(name: str) -> str:
     """
-    Normaliza y sanitiza un nombre de proyecto para uso seguro en cabeceras HTTP
-    Content-Disposition y nombres de archivo del sistema operativo.
-    
-    Transformaciones:
-    - Descomposición NFKD para eliminar acentos (e.g. á -> a, é -> e).
-    - Conversión a minúsculas.
-    - Reemplazo de cualquier secuencia que no sea [a-z0-9] por guion medio.
-    - Recorte de guiones al inicio y final.
+    Normalizes and sanitizes a project name for safe usage in HTTP
+    Content-Disposition headers and filesystem file names.
+
+    Transformations:
+    - NFKD decomposition to strip accents (e.g., á -> a, é -> e).
+    - Lowercase conversion.
+    - Replacement of non-alphanumeric [^a-z0-9] sequences with hyphens.
+    - Trimming leading/trailing hyphens.
     """
     normalized = unicodedata.normalize("NFKD", name)
     ascii_text = normalized.encode("ascii", "ignore").decode("ascii").lower()
@@ -157,12 +157,12 @@ def _sanitize_filename_slug(name: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Endpoints de la API
+# API Endpoints
 # ---------------------------------------------------------------------------
 
 @router.get("/health", response_model=HealthResponse, tags=["sistema"])
 def get_health() -> HealthResponse:
-    """Verifica el estado y disponibilidad operativa de la API."""
+    """Verifies operational health and availability of the API."""
     return HealthResponse(
         status="ok",
         app="Arranque Seguro",
@@ -172,16 +172,15 @@ def get_health() -> HealthResponse:
 
 @router.get("/profiles", response_model=list[ProfileItem], tags=["perfiles"])
 def get_profiles() -> list[ProfileItem]:
-    """Retorna los 3 perfiles oficiales para precargar en el formulario con un solo clic."""
+    """Returns the 3 official profiles for 1-click form preloading."""
     return OFFICIAL_PROFILES
 
 
 @router.post("/evaluate", response_model=EvaluationResult, tags=["evaluaciones"])
 def evaluate_endpoint(request: ProjectRequest) -> EvaluationResult:
     """
-    Evalúa una solicitud de proyecto aplicando las reglas de negocio R1 a R9,
-    análisis de seguridad en entradas, detección de contradicciones y cálculo
-    del nivel efectivo de seguridad.
+    Evaluates a project request applying business rules R1 through R9,
+    input security scans, contradiction resolution, and effective security level calculation.
     """
     return evaluate_project(request)
 
@@ -189,8 +188,8 @@ def evaluate_endpoint(request: ProjectRequest) -> EvaluationResult:
 @router.post("/generate-package", response_model=PackageResponse, tags=["paquetes"])
 async def generate_package_endpoint(request: ProjectRequest) -> PackageResponse:
     """
-    Evalúa el proyecto, obtiene de forma asíncrona la introducción redactada
-    (con fallback resiliente) y genera los 4 archivos del paquete Markdown/.gitignore.
+    Evaluates project, asynchronously retrieves AI intro (with resilient fallback),
+    and generates the 4-file package (Markdown and .gitignore).
     """
     evaluation = evaluate_project(request)
     ai_intro = await generate_project_intro(request, evaluation)
@@ -207,14 +206,14 @@ async def generate_package_endpoint(request: ProjectRequest) -> PackageResponse:
 @router.post("/download-zip", tags=["paquetes"])
 async def download_zip_endpoint(request: ProjectRequest) -> StreamingResponse:
     """
-    Genera el paquete completo de documentos estrictamente en memoria (io.BytesIO)
-    y lo retorna empaquetado en formato ZIP con un nombre de archivo seguro en Content-Disposition.
+    Generates the complete document package strictly in-memory (io.BytesIO)
+    and returns it as a ZIP archive with a sanitized Content-Disposition filename.
     """
     evaluation = evaluate_project(request)
     ai_intro = await generate_project_intro(request, evaluation)
     package = generate_package(request, evaluation, ai_intro)
 
-    # Empaquetado en memoria
+    # In-memory ZIP packaging
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
         for filename, content in package.files.items():

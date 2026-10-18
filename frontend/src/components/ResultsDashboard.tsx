@@ -44,7 +44,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
   return (
     <div className="results-dashboard">
-      {/* Barra superior de navegación rápida */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
         <div>
           <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--color-primary)" }}>Resultados de Evaluación</h2>
@@ -62,7 +61,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </button>
       </div>
 
-      {/* 1. Nivel Efectivo de Seguridad Asignado */}
       <div className={`level-badge-container ${evaluation.effective_level}`}>
         <div className="level-pill">{evaluation.effective_level}</div>
         <div>
@@ -75,7 +73,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       </div>
 
-      {/* 2. Alertas de Seguridad Detectadas y Mitigadas */}
       {evaluation.security_alerts.length > 0 && (
         <div className="card" style={{ borderLeft: "4px solid var(--color-accent)", marginBottom: "1.5rem" }}>
           <h3 style={{ fontSize: "1.1rem", marginBottom: "0.85rem", color: "#991b1b", display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -119,7 +116,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       )}
 
-      {/* 3. Contradicciones de Negocio Resueltas */}
       {evaluation.contradictions.length > 0 && (
         <div className="card" style={{ borderLeft: "4px solid var(--status-warning)", marginBottom: "1.5rem" }}>
           <h3 style={{ fontSize: "1.1rem", marginBottom: "0.85rem", color: "#92400e", display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -149,7 +145,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       )}
 
-      {/* 4. Metadatos de la Introducción y Procedencia */}
       <div className="card" style={{ marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
           <div>
@@ -172,7 +167,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       </div>
 
-      {/* 5. Trazabilidad de Reglas R1 a R9 */}
       <div className="card" style={{ marginBottom: "1.5rem" }}>
         <div
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
@@ -218,7 +212,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         )}
       </div>
 
-      {/* 6. Visor de Pestañas con los 4 Archivos y Descarga ZIP */}
       <DocumentViewer
         files={files}
         onDownloadZip={onDownloadZip}

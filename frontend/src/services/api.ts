@@ -1,6 +1,6 @@
 /**
- * Cliente de servicios HTTP para interactuar con la API REST de Arranque Seguro.
- * Incluye fallback local para perfiles oficiales y descarga de archivos binarios (ZIP).
+ * HTTP client service to communicate with the Arranque Seguro REST API.
+ * Includes local fallback for official profiles and binary ZIP downloads.
  */
 
 import {
@@ -99,7 +99,7 @@ export async function getProfiles(): Promise<ProfileItem[]> {
       }
     }
   } catch {
-    // Fallback silencioso a perfiles locales
+    // Silent fallback to local offline profiles
   }
   return LOCAL_FALLBACK_PROFILES;
 }
@@ -147,7 +147,7 @@ export async function downloadZip(
     throw new Error(`Error al descargar el paquete ZIP (${res.status})`);
   }
 
-  // Extraer filename de Content-Disposition
+  // Extract filename from Content-Disposition header
   const disposition = res.headers.get("Content-Disposition") || "";
   let filename = "arranque-seguro-paquete.zip";
   const match = disposition.match(/filename=["']?([^"';]+)["']?/i);

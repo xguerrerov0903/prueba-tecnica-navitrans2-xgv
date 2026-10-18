@@ -16,7 +16,6 @@ interface LandingPresentationProps {
 export const LandingPresentation: React.FC<LandingPresentationProps> = ({ onStart }) => {
   return (
     <div className="presentation-view">
-      {/* Hero Section */}
       <section className="card hero-card" style={{ textAlign: "center", padding: "3.5rem 2rem", borderTop: "4px solid var(--color-primary)" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "var(--color-primary-subtle)", border: "1px solid rgba(10, 37, 64, 0.2)", padding: "0.35rem 0.85rem", borderRadius: "var(--radius-sm)", fontSize: "0.8rem", color: "var(--color-primary)", fontWeight: 700, marginBottom: "1.5rem" }}>
           <ShieldCheck size={16} /> Innovación y Gobernanza Técnica para Prototipos Navitrans
@@ -34,7 +33,6 @@ export const LandingPresentation: React.FC<LandingPresentationProps> = ({ onStar
         </div>
       </section>
 
-      {/* Qué problema resuelve y para quién */}
       <section className="card">
         <h3 style={{ fontSize: "1.35rem", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <AlertTriangle color="var(--color-accent)" size={24} /> El Desafío en Navitrans
@@ -70,7 +68,6 @@ export const LandingPresentation: React.FC<LandingPresentationProps> = ({ onStar
         </div>
       </section>
 
-      {/* Cómo funciona */}
       <section className="card">
         <h3 style={{ fontSize: "1.35rem", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <Sparkles color="var(--color-primary)" size={24} /> Cómo Funciona: de la Idea al Paquete Versionable
@@ -103,7 +100,6 @@ export const LandingPresentation: React.FC<LandingPresentationProps> = ({ onStar
         </div>
       </section>
 
-      {/* Qué módulos tiene y qué genera */}
       <section className="card">
         <h3 style={{ fontSize: "1.35rem", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <FileCode color="var(--color-primary)" size={24} /> Los 4 Artefactos que Entrega
@@ -147,7 +143,6 @@ export const LandingPresentation: React.FC<LandingPresentationProps> = ({ onStar
         </div>
       </section>
 
-      {/* Procedencia Normativa */}
       <section className="card">
         <h3 style={{ fontSize: "1.35rem", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <Scale color="var(--color-primary)" size={24} /> Procedencia de los Lineamientos
@@ -195,7 +190,6 @@ export const LandingPresentation: React.FC<LandingPresentationProps> = ({ onStar
         </div>
       </section>
 
-      {/* CTA Final */}
       <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
         <button className="btn btn-primary" onClick={onStart} style={{ fontSize: "1rem", padding: "1rem 2.5rem" }}>
           Probar la Herramienta Ahora <ArrowRight size={20} />

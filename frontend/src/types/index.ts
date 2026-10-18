@@ -1,6 +1,6 @@
 /**
- * Tipos de datos sincronizados 1:1 con los modelos de dominio del backend (Pydantic).
- * Archivo fuente: backend/app/domain/models.py
+ * TypeScript data types synchronized 1:1 with backend domain models (Pydantic).
+ * Source file: backend/app/domain/models.py
  */
 
 export type Stage = "prototype" | "pilot" | "production";

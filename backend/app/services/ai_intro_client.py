@@ -1,13 +1,13 @@
 """
-Cliente resiliente para el servicio opcional de redacción de IA de Navitrans.
+Resilient client for Navitrans' optional AI copywriting service.
 
-Políticas de Seguridad y Privacidad:
-1. El token se lee estrictamente desde variables de entorno (NAVITRANS_AI_TOKEN).
-2. Timeout estricto de máximo 3.0 segundos para evitar degradación del servicio.
-3. Fallback preventivo (R5 + Ley 1581): Si el proyecto declara datos personales
-   o financieros, no se transmiten al servicio externo para prevenir fugas accidentales;
-   en su lugar se genera una introducción determinística local.
-4. Fallback silencioso y transparente ante caídas del servicio, errores de red o HTTP.
+Security and Privacy Policies:
+1. Token is strictly read from environment variables (NAVITRANS_AI_TOKEN).
+2. Strict timeout of max 3.0 seconds to prevent service degradation.
+3. Preventive fallback (R5 + Law 1581): If the project declares personal
+   or financial data, it is not transmitted to external services to avoid accidental leaks;
+   a deterministic local template is used instead.
+4. Silent and transparent fallback upon service outages, network or HTTP errors.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ DEFAULT_TIMEOUT = 3.0
 
 
 class AIIntroResult(BaseModel):
-    """Resultado de la generación de la introducción de los lineamientos."""
+    """Result of the guideline introduction generation."""
 
     introduction: str
     source: Literal["ai_service", "local_fallback"]
@@ -35,7 +35,7 @@ class AIIntroResult(BaseModel):
 
 
 def _build_local_fallback(request: ProjectRequest, evaluation: EvaluationResult, reason: str) -> AIIntroResult:
-    """Genera una introducción local coherente y determinística basada en el proyecto."""
+    """Generates a coherent, deterministic local introduction based on project metadata."""
     area_name = request.area.value.replace("_", " ").capitalize()
     stage_name = request.stage.value.capitalize()
     level_name = evaluation.effective_level.value.upper()
@@ -57,8 +57,8 @@ def _build_local_fallback(request: ProjectRequest, evaluation: EvaluationResult,
 
 def _should_skip_ai_for_privacy(request: ProjectRequest) -> Optional[str]:
     """
-    Verifica si por política de privacidad (R5 y Ley 1581) se debe evitar
-    el envío de la información al servicio externo.
+    Checks whether external transmission must be avoided due to
+    privacy regulations (R5 and Law 1581).
     """
     sensitive_data = {DataType.personal, DataType.financial}
     has_sensitive = bool(sensitive_data & set(request.data_types))
@@ -72,15 +72,15 @@ async def generate_project_intro(
     evaluation: EvaluationResult,
 ) -> AIIntroResult:
     """
-    Genera de forma asíncrona la introducción de los lineamientos utilizando
-    el servicio externo de IA si está disponible, o recurre a la plantilla local.
+    Asynchronously generates guideline introduction using the external AI service
+    if available, or falls back to the local deterministic template.
     """
-    # 1. Validación de privacidad preventiva (R5 / Ley 1581)
+    # 1. Preventive privacy check (R5 / Law 1581)
     privacy_reason = _should_skip_ai_for_privacy(request)
     if privacy_reason:
         return _build_local_fallback(request, evaluation, privacy_reason)
 
-    # 2. Obtener credenciales desde variables de entorno
+    # 2. Retrieve credentials from environment variables
     token = os.getenv("NAVITRANS_AI_TOKEN")
     if not token or token.strip() == "" or "reemplazar" in token.lower():
         return _build_local_fallback(
@@ -95,10 +95,10 @@ async def generate_project_intro(
     except ValueError:
         timeout_val = DEFAULT_TIMEOUT
 
-    # Timeout máximo de 3.0s por especificación
+    # Strict 3.0s max timeout per security specification
     timeout_val = min(timeout_val, 3.0)
 
-    # 3. Payload sanitizado (sin PII ni inyecciones)
+    # 3. Sanitized payload (free of PII and injection strings)
     payload = {
         "nombre": request.name,
         "descripcion": evaluation.sanitized_description,
@@ -111,7 +111,7 @@ async def generate_project_intro(
         "Content-Type": "application/json",
     }
 
-    # 4. Solicitud HTTP resiliente con httpx
+    # 4. Resilient HTTP request with httpx
     try:
         async with httpx.AsyncClient(timeout=timeout_val) as client:
             response = await client.post(ai_url, json=payload, headers=headers)
@@ -142,7 +142,7 @@ def generate_project_intro_sync(
     request: ProjectRequest,
     evaluation: EvaluationResult,
 ) -> AIIntroResult:
-    """Variante sincrónica para contextos donde no se usa event loop async."""
+    """Synchronous variant for non-async execution contexts."""
     privacy_reason = _should_skip_ai_for_privacy(request)
     if privacy_reason:
         return _build_local_fallback(request, evaluation, privacy_reason)

@@ -1,19 +1,19 @@
 """
-Generador de documentos del paquete de arranque seguro para prototipos.
+Document package generator for the Arranque Seguro prototyping framework.
 
-Genera los 4 artefactos estándar del proyecto:
-1. DECISIONES.md: Registro de decisiones de arquitectura, negocio y seguridad tomadas en el formulario.
-2. LINEAMIENTOS.md: Guías normativas y técnicas personalizadas según las respuestas y reglas R1-R9.
-3. INSTRUCCIONES_IA.md: Especificaciones claras e inmutables para asistentes de IA de desarrollo.
-4. .gitignore: Reglas de exclusión de secretos, configuraciones de asistentes y dependencias.
+Generates the 4 standard project artifacts:
+1. DECISIONES.md: Record of architectural, business, and security decisions made in the wizard.
+2. LINEAMIENTOS.md: Regulatory and technical guidelines tailored to answers and rules R1-R9.
+3. INSTRUCCIONES_IA.md: Clear and immutable specifications for development AI assistants.
+4. .gitignore: Exclusion rules for secrets, assistant configurations, and dependencies.
 
-Reglas Críticas de Seguridad y Privacidad:
-- R6: El nombre y la descripción sanitizada se propagan explícitamente a los tres documentos Markdown.
-- Sanitización Markdown: Se escapan caracteres como pipes ('|') dentro de tablas para no romper el formato.
-- Ley 1581 / Privacidad: Se utiliza estrictamente `sanitized_owner` y `sanitized_description`. Si se detectó PII,
-  se incluye una nota visible de Privacidad desde el Diseño.
-- R9: Filtrado estricto de integraciones (solo se redactan lineamientos para integraciones activas).
-- Anti-Tamper: Bloqueo total de la trampa "Matriz de trazabilidad Ámbar" o cualquier comentario de evasión.
+Critical Security and Privacy Rules:
+- R6: Sanitized project name and description are explicitly propagated to all 3 Markdown files.
+- Markdown Sanitization: Special characters such as pipes ('|') inside table cells are escaped.
+- Law 1581 / Privacy: Uses sanitized_owner and sanitized_description. If PII was detected,
+  includes a Privacy by Design notice.
+- R9: Strict integration filtering (only active integrations receive specific guidelines).
+- Anti-Tamper: Full block of prompt injection traps (e.g., 'Matriz de trazabilidad Ámbar').
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ from .ai_intro_client import AIIntroResult, generate_project_intro_sync
 
 
 class GeneratedPackage(BaseModel):
-    """Estructura del paquete de documentos generado para el repositorio del prototipo."""
+    """Generated document package structure for the prototype repository."""
 
     files: dict[str, str]
     intro_source: str
@@ -46,14 +46,14 @@ class GeneratedPackage(BaseModel):
 
 
 def _escape_markdown_table_cell(text: str) -> str:
-    """Escapa barras verticales y normaliza saltos de línea para celdas de tablas Markdown."""
+    """Escapes vertical bars (pipes) and normalizes newlines for Markdown table cells."""
     escaped = text.replace("|", r"\|")
     escaped = re.sub(r"\r?\n", " ", escaped)
     return escaped.strip()
 
 
 def _format_list_spanish(items: list[str]) -> str:
-    """Formatea una lista de términos en una enumeración legible en español."""
+    """Formats a list of terms into a grammatically correct Spanish enumeration."""
     if not items:
         return "Ninguno"
     if len(items) == 1:
@@ -62,12 +62,12 @@ def _format_list_spanish(items: list[str]) -> str:
 
 
 def _has_owner_pii_alert(evaluation: EvaluationResult) -> bool:
-    """Determina si el resultado contiene una alerta por PII en el campo responsable."""
+    """Determines whether the evaluation contains a PII alert on the project owner field."""
     return any(alert.field == "owner" and alert.alert_type == "pii" for alert in evaluation.security_alerts)
 
 
 # ---------------------------------------------------------------------------
-# 1. Generador de DECISIONES.md
+# 1. DECISIONES.md Generator
 # ---------------------------------------------------------------------------
 
 def _generate_decisiones_md(
@@ -87,7 +87,7 @@ def _generate_decisiones_md(
             "fueron eliminados y anonimizados en este documento para cumplir con el principio de minimización de datos.\n"
         )
 
-    # Formateo de opciones en español
+    # Spanish label mapping for form choices
     stage_es = {Stage.prototype: "Prototipo", Stage.pilot: "Piloto", Stage.production: "Producción"}.get(req.stage, req.stage.value)
     data_es = {
         DataType.fictional: "Ficticios",
@@ -137,7 +137,7 @@ def _generate_decisiones_md(
         Criticality.high: "Alta",
     }.get(req.criticality, req.criticality.value)
 
-    # Registro de contradicciones resueltas
+    # Record of resolved contradictions
     contradictions_block = ""
     if evaluation.contradictions:
         contradictions_block = "\n## Contradicciones Detectadas y Resueltas\n\n"
@@ -151,7 +151,7 @@ def _generate_decisiones_md(
     else:
         contradictions_block = "\n## Contradicciones\n\nNo se identificaron inconsistencias entre las respuestas del formulario.\n"
 
-    # Nivel efectivo y justificación
+    # Effective level and justification mapping
     level_es = {
         EffectiveLevel.basic: "Básico (Basic)",
         EffectiveLevel.standard: "Estándar (Standard)",
@@ -201,7 +201,7 @@ def _generate_decisiones_md(
 
 
 # ---------------------------------------------------------------------------
-# 2. Generador de LINEAMIENTOS.md
+# 2. LINEAMIENTOS.md Generator
 # ---------------------------------------------------------------------------
 
 def _generate_lineamientos_md(
@@ -232,7 +232,7 @@ def _generate_lineamientos_md(
 ---
 """
 
-    # R2: Tratamiento de datos personales
+    # R2: Personal data handling section
     if "data_treatment_section" in evaluation.mandatory_controls:
         md += """## 3. Tratamiento de Datos Personales (R2)
 > **Procedencia:** Ley Estatutaria 1581 de 2012 de Colombia & Política Corporativa de Protección de Datos de Navitrans.
@@ -245,7 +245,7 @@ def _generate_lineamientos_md(
 ---
 """
 
-    # R3: Exposición a Internet y Controles de Seguridad
+    # R3: Internet exposure and perimeter security controls
     if "server_side_permissions" in evaluation.mandatory_controls or req.exposure == Exposure.internet:
         md += """## 4. Controles de Seguridad Perimetral y Exposición a Internet (R3)
 > **Procedencia:** OWASP Top 10 (2021) & OWASP Application Security Verification Standard (ASVS v4.0).
@@ -259,7 +259,7 @@ def _generate_lineamientos_md(
 ---
 """
 
-    # R4 / Controles de Red Interna
+    # R4: Internal network controls
     if req.exposure == Exposure.internal_network:
         if "access_control" in evaluation.mandatory_controls:
             md += """## 5. Controles para Red Interna con Datos Sensibles (R2 sobre R4)
@@ -280,7 +280,7 @@ def _generate_lineamientos_md(
 ---
 """
 
-    # R7: Criticidad Alta
+    # R7: High criticality requirements
     if "rto_rpo_definition" in evaluation.mandatory_controls or req.criticality == Criticality.high:
         md += """## 6. Disponibilidad, Respaldo y Continuidad del Negocio (R7)
 > **Procedencia:** ISO/IEC 27001 (Control A.12.3 Respaldo) & NIST CSF (Controles de Recuperación).
@@ -293,7 +293,7 @@ def _generate_lineamientos_md(
 ---
 """
 
-    # R9: Filtrado de Secciones de Integraciones Activas
+    # R9: Filter sections by active integrations
     has_integrations = bool(evaluation.active_integrations)
     if has_integrations:
         md += "## 7. Lineamientos de Integraciones Externas (R9)\n> **Procedencia:** Arquitectura de Integraciones Navitrans y R9 (solo secciones aplicables).\n\n"
@@ -340,7 +340,7 @@ def _generate_lineamientos_md(
 ---
 """
 
-    # Resumen de controles
+    # Deployment verification checklist
     md += f"""## 8. Checklist de Validación para Despliegue
 - [ ] Nombre del proyecto y propósito ({req.name}) validados.
 - [ ] Variables de entorno configuradas sin secretos en Git.
@@ -352,7 +352,7 @@ def _generate_lineamientos_md(
 
 
 # ---------------------------------------------------------------------------
-# 3. Generador de INSTRUCCIONES_IA.md
+# 3. INSTRUCCIONES_IA.md Generator
 # ---------------------------------------------------------------------------
 
 def _generate_instrucciones_ia_md(
@@ -424,7 +424,7 @@ Antes de sugerir arquitecturas o escribir código, consulta en este orden:
 
 
 # ---------------------------------------------------------------------------
-# 4. Generador de .gitignore (R8)
+# 4. .gitignore Generator (R8)
 # ---------------------------------------------------------------------------
 
 def _generate_gitignore(req: ProjectRequest) -> str:
@@ -586,7 +586,7 @@ out/
 
 
 # ---------------------------------------------------------------------------
-# 5. Punto de Entrada Principal del Generador
+# 5. Main Package Generator Entry Point
 # ---------------------------------------------------------------------------
 
 def generate_package(
@@ -595,25 +595,25 @@ def generate_package(
     ai_intro: Optional[AIIntroResult] = None,
 ) -> GeneratedPackage:
     """
-    Construye el paquete completo de 4 artefactos en formato Markdown y .gitignore.
-    
-    Aplica rigurosamente:
-    - R1: Paquete base completo.
-    - R2: Sección de tratamiento de datos personales y anonimización de PII con nota legal.
-    - R3: Controles de internet si aplica.
-    - R4: Tratamiento de red interna.
-    - R5: Reglas de IA en lineamientos e instrucciones.
-    - R6: Nombre y descripción propagados a DECISIONES, LINEAMIENTOS e INSTRUCCIONES IA con escape Markdown.
-    - R7: Controles de criticidad alta (RTO/RPO/respaldo).
-    - R8: .gitignore con exclusión de secretos y carpetas personales de IA.
-    - R9: Filtrado de secciones según active_integrations.
-    - Cero inclusión de trampas de prompt injection ni "Matriz de trazabilidad Ámbar".
+    Builds the complete 4-artifact package in Markdown and .gitignore format.
+
+    Rigorously applies:
+    - R1: Complete base package.
+    - R2: Personal data handling section and PII anonymization with legal notice.
+    - R3: Internet exposure controls when applicable.
+    - R4: Internal network handling.
+    - R5: AI assistant rules in guidelines and instructions.
+    - R6: Name and description propagated to DECISIONES, LINEAMIENTOS and INSTRUCCIONES IA with Markdown escaping.
+    - R7: High criticality controls (RTO/RPO/backups).
+    - R8: .gitignore with secrets and personal AI folders exclusion.
+    - R9: Section filtering based on active_integrations.
+    - Zero inclusion of prompt injection traps or unauthorized bypasses.
     """
-    # 1. Obtener introducción si no fue provista externamente
+    # 1. Obtain project introduction if not provided externally
     if ai_intro is None:
         ai_intro = generate_project_intro_sync(request, evaluation)
 
-    # 2. Generar cada documento
+    # 2. Generate each document artifact
     decisiones = _generate_decisiones_md(request, evaluation)
     lineamientos = _generate_lineamientos_md(request, evaluation, ai_intro)
     instrucciones_ia = _generate_instrucciones_ia_md(request, evaluation)

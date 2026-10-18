@@ -42,7 +42,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [formData, setFormData] = useState<ProjectRequest>(initialData);
 
-  // Sincronizar formData cuando initialData cambia (por selección de perfil)
+  // Synchronize formData when initialData changes (e.g., profile selection)
   React.useEffect(() => {
     setFormData(initialData);
   }, [initialData]);
@@ -72,7 +72,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
         updated = [...prev.data_types, type];
       }
 
-      // Si se activan datos personales o financieros y el login estaba en 'none' (modo manual), auto-cambiar a Entra ID
+      // When personal or financial data is toggled on with login 'none' (manual mode), auto-switch to Microsoft Entra ID
       const hasSensitive = updated.includes("personal") || updated.includes("financial");
       let nextLogin = prev.login;
       if (!isOfficialProfile && hasSensitive && prev.login === "none") {
@@ -103,7 +103,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   };
 
   // =========================================================================
-  // Validación de Bloqueo Preventivo en el Cliente (Modo Manual)
+  // Client-Side Preventive Validation Blocker (Manual Mode)
   // =========================================================================
   interface BlockerIssue {
     id: string;
@@ -117,7 +117,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
 
     const issues: BlockerIssue[] = [];
 
-    // Regla 1: Internet o clientes externos sin login (R3)
+    // Rule 1: Internet exposure or external clients without login (R3)
     const isExposed = formData.exposure === "internet" || formData.audience === "external_clients";
     if (isExposed && formData.login === "none") {
       issues.push({
@@ -130,7 +130,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
       });
     }
 
-    // Regla 2: Criticidad alta sin login (R7)
+    // Rule 2: High criticality without login (R7)
     if (formData.criticality === "high" && formData.login === "none") {
       issues.push({
         id: "high-crit-login",
@@ -142,7 +142,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
       });
     }
 
-    // Regla 3: Datos personales o financieros sin login (Universal: R2 / C2)
+    // Rule 3: Personal or financial data without login (Universal: R2 / C2)
     const hasSensitiveData =
       formData.data_types.includes("personal") || formData.data_types.includes("financial");
     if (hasSensitiveData && formData.login === "none") {
@@ -156,7 +156,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
       });
     }
 
-    // Regla 4: Infracción Ley 1581 en Responsable (Cédula o Celular)
+    // Rule 4: Law 1581 PII violation in project owner (ID number or phone)
     const ccPattern = /C\.?C\.?\s*[\d\.]{5,}/i;
     const phonePattern = /3\d{2}[\s\-]?\d{3}[\s\-]?\d{4}/;
     if (ccPattern.test(formData.owner) || phonePattern.test(formData.owner)) {
@@ -185,15 +185,15 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   const hasSensitiveDataSelected =
     formData.data_types.includes("personal") || formData.data_types.includes("financial");
 
-  // CASO A: Internet + datos sensibles → SIEMPRE criticidad Alta (aplica incluso en modo perfil oficial)
+  // CASE A: Internet + sensitive data -> ALWAYS High criticality (applies to official profiles too)
   const mustBeHighCriticality =
     hasSensitiveDataSelected && formData.exposure === "internet";
 
-  // CASO B: Internet + cualquier dato sin sensible → criticidad mínima Media
+  // CASE B: Internet + non-sensitive data -> minimum Medium criticality
   const mustBeAtLeastMediumCriticality =
     formData.exposure === "internet" && !hasSensitiveDataSelected;
 
-  // Auto-corrección CASO A: forzar "high" si internet + datos sensibles
+  // Auto-correction CASE A: force 'high' if internet + sensitive data
   React.useEffect(() => {
     if (mustBeHighCriticality && formData.criticality !== "high") {
       setFormData((prev) => ({ ...prev, criticality: "high" }));
@@ -201,7 +201,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mustBeHighCriticality]);
 
-  // Auto-corrección CASO B: elevar de "low" a "medium" si internet sin datos sensibles
+  // Auto-correction CASE B: promote 'low' to 'medium' if internet without sensitive data
   React.useEffect(() => {
     if (mustBeAtLeastMediumCriticality && formData.criticality === "low") {
       setFormData((prev) => ({ ...prev, criticality: "medium" }));
@@ -211,7 +211,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
 
   return (
     <div className="wizard-container">
-      {/* Banner de Modo Demostración */}
       {isOfficialProfile && (
         <div className="demo-mode-alert">
           <div>
@@ -234,7 +233,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
         </div>
       )}
 
-      {/* Navegación Libre de Pasos */}
       <div className="wizard-steps-nav">
         <button
           type="button"
@@ -274,9 +272,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="card">
-        {/* ===================================================================
-            PASO 1: IDENTIFICACIÓN Y ALCANCE
-            =================================================================== */}
         {currentStep === 1 && (
           <div className="step-content">
             <div className="form-group">
@@ -406,9 +401,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
           </div>
         )}
 
-        {/* ===================================================================
-            PASO 2: DATOS, EXPOSICIÓN Y ACCESOS
-            =================================================================== */}
         {currentStep === 2 && (
           <div className="step-content">
             <div className="form-group">
@@ -439,7 +431,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                 <span>Tipo de Datos (Varias) *</span>
                 <span className="form-hint">Selecciona los que correspondan</span>
               </label>
-              {/* CORRECCIÓN 1: Etiquetas limpias oficiales sin texto normativo incrustado */}
               <div className="chips-grid">
                 {[
                   { value: "fictional", label: "Ficticios" },
@@ -458,7 +449,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                 ))}
               </div>
 
-              {/* CORRECCIÓN 1.2: Nota normativa sutil condicional */}
               {hasSensitiveDataSelected && (
                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--status-warning)" }}>
                   <Info size={14} />
@@ -535,9 +525,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
           </div>
         )}
 
-        {/* ===================================================================
-            PASO 3: INTEGRACIONES Y ARQUITECTURA
-            =================================================================== */}
         {currentStep === 3 && (
           <div className="step-content">
             <div className="form-group">
@@ -570,7 +557,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                 <span>Tecnología del Backend *</span>
                 <span className="form-hint">Determina las reglas de .gitignore (R8)</span>
               </label>
-              {/* Tecnologías primarias: Top 5 + botón "Otra..." */}
               {(() => {
                 const SECONDARY_TECHS = ["php", "ruby", "rust", "kotlin", "other"] as BackendTech[];
                 const showOtherDropdown = SECONDARY_TECHS.includes(formData.backend as BackendTech);
@@ -609,7 +595,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                       })}
                     </div>
 
-                    {/* Menú desplegable — solo visible cuando el valor actual es secundario */}
                     {showOtherDropdown && (
                       <select
                         id="backend-other-select"
@@ -641,9 +626,9 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                   { value: "medium", label: "Media" },
                   { value: "high",   label: "Alta" },
                 ].map((item) => {
-                  // CASO A: internet + sensible → bloquear Baja y Media
+                  // CASE A: internet + sensitive data -> disable Low and Medium
                   const isDisabledCaseA = mustBeHighCriticality && (item.value === "low" || item.value === "medium");
-                  // CASO B: internet sin sensible → bloquear solo Baja
+                  // CASE B: internet without sensitive data -> disable Low
                   const isDisabledCaseB = mustBeAtLeastMediumCriticality && item.value === "low";
                   const isDisabledByCriticality = isDisabledCaseA || isDisabledCaseB;
                   return (
@@ -671,7 +656,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                   );
                 })}
               </div>
-              {/* Nota CASO A */}
               {mustBeHighCriticality && (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--color-accent)", lineHeight: "1.4" }}>
                   <ShieldCheck size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
@@ -682,7 +666,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                   </span>
                 </div>
               )}
-              {/* Nota CASO B */}
               {mustBeAtLeastMediumCriticality && !mustBeHighCriticality && (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--status-warning)", lineHeight: "1.4" }}>
                   <ShieldCheck size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
@@ -697,9 +680,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
           </div>
         )}
 
-        {/* ===================================================================
-            BLOQUEO PREVENTIVO EN CLIENTE
-            =================================================================== */}
         {isBlocked && !isOfficialProfile && (
           <div className="validation-blocker-card">
             <AlertOctagon size={24} className="blocker-icon" />
@@ -722,9 +702,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
           </div>
         )}
 
-        {/* ===================================================================
-            BOTONES DE NAVEGACIÓN
-            =================================================================== */}
         <div className="wizard-actions">
           {currentStep > 1 ? (
             <button

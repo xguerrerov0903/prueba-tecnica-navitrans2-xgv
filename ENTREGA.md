@@ -4,7 +4,7 @@
 
 | Elemento | Ubicación | Estado | Detalle |
 | :--- | :--- | :---: | :--- |
-| **Código de la herramienta** | `backend/`, `frontend/`, `docker-compose.yml` | ✅ Completo | Página de presentación ejecutiva, asistente guiado en 3 pasos, validación tipada estricta Pydantic v2, motor de reglas R1–R9 + C1–C7, generador en memoria y descarga en `.zip`. |
+| **Código de la herramienta** | `backend/`, `frontend/`, `docker-compose.yml` | ✅ Completo | Frontend React 18 + TypeScript estricto + Vite + Lucide React; Backend FastAPI/Pydantic v2; motor de reglas R1–9 + C1–7; generador en memoria y descarga en `.zip`. |
 | **`README.md`** | `/README.md` | ✅ Completo | Guía ejecutiva Senior con inicio rápido en 1 solo comando vía Docker Compose, ejecución local paso a paso, arquitectura, trazabilidad normativa y resultados de los perfiles. |
 | **`DECISIONES.md`** | `/DECISIONES.md` y `plantillas/DECISIONES.md` | ✅ Completo | Registro exhaustivo de decisiones técnicas: arquitectura hexagonal, almacenamiento en memoria, gobierno de autenticación, cliente IA resiliente con fallback, matriz C1–C7 y riesgos aceptados. |
 | **`ejemplos/`** | `ejemplos/perfil-1-...`<br>`ejemplos/perfil-2-...`<br>`ejemplos/perfil-3-...` | ✅ Completo | Paquetes generados para los 3 perfiles oficiales de `docs/datos-de-prueba.md` conteniendo cada uno sus 4 artefactos (`DECISIONES.md`, `LINEAMIENTOS.md`, `INSTRUCCIONES_IA.md`, `.gitignore`). |
@@ -16,7 +16,7 @@
 
 - [x] **La herramienta arranca siguiendo el README:**
   - Opción A: `docker compose up --build -d` (Frontend en `http://localhost:8080`, Backend en `http://localhost:8000`).
-  - Opción B: Ejecución local en Windows PowerShell / Linux / macOS documentada en 3 pasos claros.
+  - Opción B: Ejecución local — Backend: `uvicorn backend.app.main:app --reload --port 8000`; Frontend: `cd frontend && npm install && npm run dev` (Vite en `http://localhost:5173`).
 - [x] **La página de presentación explica la herramienta y lleva al formulario:**
   - Interfaz visual ejecutiva con métricas de valor, arquitectura, origen normativo de las reglas y botón de llamada a la acción para iniciar el asistente guiado.
 - [x] **Los tres perfiles están generados en `ejemplos/`:**

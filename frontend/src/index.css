@@ -1,44 +1,44 @@
 /* ===================================================================
-   ARRANQUE SEGURO — IDENTIDAD CORPORATIVA E INDUSTRIAL NAVITRANS
+   ARRANQUE SEGURO — NAVITRANS CORPORATE & INDUSTRIAL DESIGN SYSTEM
    =================================================================== */
 
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
-  /* Paleta Corporativa Navitrans */
-  --color-primary: #0A2540;        /* Azul marino oscuro (marca, títulos, topbar) */
-  --color-primary-light: #16385d;  /* Azul marino medio */
-  --color-primary-subtle: #EBF2F7; /* Azul tenue para fondos activos */
+  /* Navitrans Corporate Palette */
+  --color-primary: #0A2540;        /* Dark navy (brand, headings, topbar) */
+  --color-primary-light: #16385d;  /* Medium navy */
+  --color-primary-subtle: #EBF2F7; /* Subtle blue for active backgrounds */
   
-  --color-accent: #D92323;         /* Rojo motor institucional (acciones principales) */
-  --color-accent-hover: #B81D1D;   /* Rojo motor hover */
-  --color-accent-subtle: #FDF2F2;  /* Rojo tenue para avisos */
+  --color-accent: #D92323;         /* Official engine red (primary actions) */
+  --color-accent-hover: #B81D1D;   /* Engine red hover */
+  --color-accent-subtle: #FDF2F2;  /* Subtle red for warnings */
 
-  /* Fondos y Superficies */
-  --bg-page: #F2F4F4;              /* Gris perla / Anti-flash white (fondo general) */
-  --bg-surface: #FFFFFF;           /* Blanco puro (tarjetas y modales) */
-  --bg-topbar: #0A2540;            /* Azul marino superior */
-  --bg-footer: #061728;            /* Azul medianoche profundo */
+  /* Backgrounds & Surfaces */
+  --bg-page: #F2F4F4;              /* Pearl gray / Anti-flash white (page background) */
+  --bg-surface: #FFFFFF;           /* Pure white (cards and modals) */
+  --bg-topbar: #0A2540;            /* Top navigation dark navy */
+  --bg-footer: #061728;            /* Deep midnight blue */
 
-  /* Bordes y Estructura */
-  --border-light: #D8DBD9;         /* Gris metálico claro para bordes */
-  --border-subtle: #E5E7EB;        /* Gris tenue */
-  --border-focus: #0A2540;         /* Azul marino al enfocar */
+  /* Borders & Structure */
+  --border-light: #D8DBD9;         /* Light metallic gray for borders */
+  --border-subtle: #E5E7EB;        /* Subtle gray */
+  --border-focus: #0A2540;         /* Dark navy outline on focus */
 
-  /* Tipografía y Contraste */
-  --text-primary: #333333;         /* Gris carbón oscuro (alta legibilidad) */
-  --text-secondary: #5A6570;       /* Gris medio corporativo */
-  --text-dim: #7B8794;             /* Gris suave para metadatos */
-  --text-light: #F8FAFC;           /* Texto claro para barra superior y footer */
+  /* Typography & Contrast */
+  --text-primary: #333333;         /* Dark charcoal (high readability) */
+  --text-secondary: #5A6570;       /* Medium corporate gray */
+  --text-dim: #7B8794;             /* Soft gray for metadata */
+  --text-light: #F8FAFC;           /* Light text for topbar and footer */
 
-  /* Estados de Reglas */
-  --status-success: #059669;       /* Verde esmeralda sobrio */
-  --status-warning: #D97706;       /* Ámbar industrial */
-  --status-danger: #DC2626;        /* Rojo advertencia */
-  --status-info: #0284C7;          /* Azul informativo */
+  /* Rule Status Indicators */
+  --status-success: #059669;       /* Emerald green */
+  --status-warning: #D97706;       /* Industrial amber */
+  --status-danger: #DC2626;        /* Warning red */
+  --status-info: #0284C7;          /* Informative blue */
 
-  /* Geometría y Sombras */
+  /* Geometry & Shadows */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
@@ -66,7 +66,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Tipografía */
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
   color: var(--color-primary);
   font-weight: 700;
@@ -85,10 +85,10 @@ a:hover {
 }
 
 /* ===================================================================
-   LAYOUT & BARRAS INSTITUCIONALES
+   LAYOUT & INSTITUTIONAL BARS
    =================================================================== */
 
-/* Top bar institucional */
+/* Institutional topbar */
 .institutional-topbar {
   background-color: var(--bg-topbar);
   color: var(--text-light);
@@ -118,7 +118,7 @@ a:hover {
   text-transform: uppercase;
 }
 
-/* Navbar Principal */
+/* Main Navigation Bar */
 .navbar {
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-light);
@@ -226,7 +226,7 @@ a:hover {
   background-color: var(--status-warning);
 }
 
-/* Footer Corporativo */
+/* Corporate Footer */
 .institutional-footer {
   background-color: var(--bg-footer);
   color: #94a3b8;
@@ -246,7 +246,7 @@ a:hover {
   gap: 1.5rem;
 }
 
-/* Contenedor Principal */
+/* Main Container */
 .app-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -254,7 +254,7 @@ a:hover {
 }
 
 /* ===================================================================
-   TARJETAS Y CONTENEDORES
+   CARDS & CONTAINERS
    =================================================================== */
 
 .card {
@@ -271,7 +271,7 @@ a:hover {
 }
 
 /* ===================================================================
-   BOTONES
+   BUTTONS
    =================================================================== */
 
 .btn {
@@ -288,7 +288,7 @@ a:hover {
   letter-spacing: 0.02em;
 }
 
-/* Botón Primario: Rojo Motor Oficial */
+/* Primary Button: Official Engine Red */
 .btn-primary {
   background-color: var(--color-accent);
   color: #ffffff;
@@ -310,7 +310,7 @@ a:hover {
   box-shadow: none;
 }
 
-/* Botón Secundario: Blanco con borde metálico */
+/* Secondary Button: White with metallic border */
 .btn-secondary {
   background-color: #ffffff;
   color: var(--color-primary);
@@ -324,7 +324,7 @@ a:hover {
 }
 
 /* ===================================================================
-   BARRA DE PERFILES OFICIALES (MODO DEMO)
+   OFFICIAL PROFILES BAR (DEMO MODE)
    =================================================================== */
 
 .profiles-banner {
@@ -435,7 +435,7 @@ a:hover {
   line-height: 1.4;
 }
 
-/* Alerta de Modo Demostración */
+/* Demo Mode Alert Banner */
 .demo-mode-alert {
   background: #f0f7ff;
   border: 1px solid #bae0ff;
@@ -475,7 +475,7 @@ a:hover {
 }
 
 /* ===================================================================
-   WIZARD Y FORMULARIO
+   WIZARD & FORM
    =================================================================== */
 
 .wizard-steps-nav {
@@ -587,7 +587,7 @@ a:hover {
   resize: vertical;
 }
 
-/* Chips / Radios de Selección Cerrada */
+/* Single-choice chip selectors */
 .chips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -621,7 +621,7 @@ a:hover {
   box-shadow: var(--shadow-sm);
 }
 
-/* Alerta de Bloqueo Preventivo */
+/* Preventive validation blocking card */
 .validation-blocker-card {
   background: #fdf2f2;
   border: 1px solid #f8b4b4;
@@ -680,7 +680,7 @@ a:hover {
 }
 
 /* ===================================================================
-   RESULTADOS Y VISOR DE DOCUMENTOS
+   RESULTS & DOCUMENT VIEWER
    =================================================================== */
 
 .level-badge-container {
@@ -735,7 +735,7 @@ a:hover {
   border: 1px solid #fecaca;
 }
 
-/* Visor de Pestañas */
+/* Document tab viewer */
 .tabs-header {
   display: flex;
   align-items: center;

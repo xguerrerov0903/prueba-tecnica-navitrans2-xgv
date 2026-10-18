@@ -1,8 +1,9 @@
 """
-Punto de entrada principal para el backend de Arranque Seguro.
+FastAPI application entrypoint for Arranque Seguro.
 
-Configura la aplicación FastAPI, políticas CORS permisivas para desarrollo local
-con exposición de la cabecera 'Content-Disposition' y registro del enrutador de la API.
+Configures the FastAPI instance, permissive CORS middleware for local
+development (exposing the Content-Disposition header for ZIP downloads),
+and registers the API router.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from fastapi.responses import RedirectResponse
 
 from .api.routes import router as api_router
 
-# Carga de variables de entorno desde .env si existe en la raíz o backend
+# Load environment variables from .env if present at the project root or backend directory
 try:
     from dotenv import load_dotenv
     root_env = Path(__file__).resolve().parent.parent.parent / ".env"
@@ -40,9 +41,9 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
-# Configuración de CORS
+# CORS configuration
 # ---------------------------------------------------------------------------
-# Permitir orígenes de desarrollo típicos de Vite, React y Next.js
+# Allow typical local development origins used by Vite, React and Next.js
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -59,17 +60,17 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    # CRÍTICO: Exponer Content-Disposition para que fetch en frontend pueda leer el filename del ZIP
+    # CRITICAL: expose Content-Disposition so fetch() in the frontend can read the ZIP filename
     expose_headers=["Content-Disposition"],
 )
 
 # ---------------------------------------------------------------------------
-# Registro de Rutas
+# Router registration
 # ---------------------------------------------------------------------------
 app.include_router(api_router, prefix="/api")
 
 
 @app.get("/", include_in_schema=False)
 def root():
-    """Redirige automáticamente la raíz a la documentación interactiva Swagger UI."""
+    """Redirects the root path to the interactive Swagger UI."""
     return RedirectResponse(url="/docs")

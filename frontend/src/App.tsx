@@ -38,7 +38,7 @@ export const App: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Carga inicial de salud y perfiles
+  // Initial health check and profiles load
   useEffect(() => {
     checkHealth().then(setHealth);
     getProfiles().then((data) => {
@@ -94,7 +94,6 @@ export const App: React.FC = () => {
 
   return (
     <div>
-      {/* Top bar Institucional Navitrans */}
       <div className="institutional-topbar">
         <div className="topbar-brand-title">
           <Truck size={14} style={{ marginRight: "2px" }} />
@@ -110,7 +109,6 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Navbar Principal */}
       <header className="navbar">
         <div className="nav-brand">
           <div className="brand-icon">
@@ -151,9 +149,7 @@ export const App: React.FC = () => {
         </nav>
       </header>
 
-      {/* Contenedor Principal */}
       <div className="app-container">
-        {/* Mensaje de Error Global */}
         {errorMessage && (
           <div
             style={{
@@ -211,7 +207,6 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Footer Corporativo */}
       <footer className="institutional-footer">
         <div className="footer-content">
           <div>

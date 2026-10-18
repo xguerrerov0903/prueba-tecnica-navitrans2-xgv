@@ -67,12 +67,16 @@ pip install -r backend/requirements.txt
 uvicorn backend.app.main:app --reload --port 8000
 ```
 
-#### Paso 2: Servir el Frontend
-En otra terminal, sirve los archivos estáticos en el puerto 8080:
+#### Paso 2: Instalar Dependencias y Levantar el Frontend (Vite Dev Server)
+En otra terminal, arranca el servidor de desarrollo de Vite en el puerto 5173:
 ```bash
-python -m http.server 8080 --directory frontend
+cd frontend
+npm install
+npm run dev
 ```
-Abre tu navegador en [http://localhost:8080](http://localhost:8080).
+Abre tu navegador en [http://localhost:5173](http://localhost:5173).
+
+> **Nota:** El servidor Vite redirige automáticamente las llamadas a `/api` al backend en `http://127.0.0.1:8000` mediante el proxy configurado en `frontend/vite.config.ts`.
 
 #### Paso 3: Ejecutar la Suite de Pruebas Automatizadas (71 Tests)
 La solución incluye una suite exhaustiva de 71 pruebas que validan el motor de reglas, seguridad, sanitización y API:
@@ -129,9 +133,22 @@ prueba-tecnica-navitrans2-xgv/
 │   ├── Dockerfile                   # Imagen Docker backend
 │   └── requirements.txt             # Dependencias de producción y pruebas
 ├── frontend/
-│   ├── index.html                   # Página de presentación ejecutiva y asistente guiado de 3 pasos
-│   ├── css/main.css                 # Sistema de diseño Navitrans (Glassmorphism, Dark/Light, Tokens)
-│   └── js/app.js                    # Lógica de interacción reactiva Vanilla JS y consumo de API
+│   ├── src/
+│   │   ├── App.tsx                  # Componente raíz: navegación entre vistas (presentación → wizard → resultados)
+│   │   ├── main.tsx                 # Entrypoint React 18 (ReactDOM.createRoot)
+│   │   ├── index.css                # Sistema de diseño Navitrans (tokens CSS, glassmorphism, dark/light)
+│   │   ├── components/              # Componentes React tipados en TypeScript estricto
+│   │   │   ├── LandingPresentation.tsx  # Página ejecutiva de presentación con métricas y normativa
+│   │   │   ├── WizardForm.tsx           # Asistente guiado de 3 pasos con validación preventiva
+│   │   │   ├── ResultsDashboard.tsx     # Panel de resultados, reglas y alertas de seguridad
+│   │   │   ├── DocumentViewer.tsx       # Visor con tabs, copia y descarga de artefactos
+│   │   │   └── ProfileSelector.tsx      # Selector de perfiles oficiales con carga en un clic
+│   │   ├── services/api.ts          # Cliente HTTP tipado con fallback local para perfiles
+│   │   └── types/index.ts           # Tipos TypeScript sincronizados 1:1 con modelos Pydantic
+│   ├── index.html                   # HTML raíz (punto de montaje del SPA React)
+│   ├── vite.config.ts               # Configuración Vite: proxy /api → backend, puerto 5173
+│   ├── Dockerfile                   # Multi-stage: Node.js compila (tsc && vite build) → Nginx Alpine sirve
+│   └── package.json                 # React 18, TypeScript 5, Vite 6, Lucide React
 ├── docs/
 │   ├── contexto.md                  # Diagnóstico operativo del área de prototipos
 │   ├── requisitos.md                # Requisitos funcionales de la herramienta

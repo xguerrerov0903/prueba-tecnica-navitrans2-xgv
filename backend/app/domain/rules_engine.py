@@ -281,7 +281,7 @@ def _detect_contradictions(req: ProjectRequest) -> list[Contradiction]:
             resolution="Se emite advertencia; el desarrollador debe reemplazar datos reales por ficticios.",
         ))
 
-    # C6 – Internet + datos sensibles + criticidad < high (Gobernanza crítica: ISO 27001 / Ley 1581)
+    # C6 – Internet + sensitive data + criticality < high (Critical governance: ISO 27001 / Law 1581)
     if (
         req.exposure == Exposure.internet
         and sensitive
@@ -301,7 +301,7 @@ def _detect_contradictions(req: ProjectRequest) -> list[Contradiction]:
             ),
         ))
 
-    # C7 – Internet + cualquier dato sin sensible + criticality == low (Superficie de ataque pública)
+    # C7 – Internet + non-sensitive data + criticality == low (Public attack surface)
     if (
         req.exposure == Exposure.internet
         and not sensitive
@@ -356,14 +356,14 @@ def _effective_level(req: ProjectRequest, contradictions: list[Contradiction]) -
     if any("stage" in c.fields and "exposure" in c.fields for c in contradictions):
         level = EffectiveLevel.strict
 
-    # C6: internet + datos sensibles + criticidad < high → siempre strict
+    # C6: internet + sensitive data + criticality < high -> always strict
     if any(
         "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
         for c in contradictions
     ):
         level = EffectiveLevel.strict
 
-    # C7: internet + criticality low (sin datos sensibles) → mínimo standard
+    # C7: internet + low criticality (without sensitive data) -> at least standard
     if any(
         "exposure" in c.fields
         and "criticality" in c.fields
@@ -574,7 +574,7 @@ def _apply_rules(
     if sensitive and "access_control" not in controls:
         controls.append("access_control")
 
-    # C6 activa: forzar controles de R7 aunque criticality != high (inmutabilidad de req preservada)
+    # When C6 is active: enforce R7 controls even if criticality != high (preserving req immutability)
     c6_active = any(
         "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
         for c in contradictions
