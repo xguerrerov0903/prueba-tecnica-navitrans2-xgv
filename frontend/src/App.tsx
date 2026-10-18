@@ -5,6 +5,7 @@ import {
   Presentation,
   FileCheck2,
   AlertCircle,
+  Truck,
 } from "lucide-react";
 import {
   checkHealth,
@@ -92,12 +93,28 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="app-container">
-      {/* Navbar Superior */}
+    <div>
+      {/* Top bar Institucional Navitrans */}
+      <div className="institutional-topbar">
+        <div className="topbar-brand-title">
+          <Truck size={14} style={{ marginRight: "2px" }} />
+          <span className="topbar-brand-tag">NAVITRANS</span>
+          <span>GOBERNANZA TÉCNICA Y SEGURIDAD TI — ARRANQUE SEGURO</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          <span>PORTAL DE PROTOTIPOS</span>
+          <div className="status-pill" title={health.status === "ok" ? "Backend conectado" : "Backend desconectado"}>
+            <span className={`status-dot ${health.status === "ok" ? "online" : "offline"}`} />
+            <span>{health.status === "ok" ? "API Conectada" : "Modo Local"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Navbar Principal */}
       <header className="navbar">
         <div className="nav-brand">
           <div className="brand-icon">
-            <ShieldCheck size={22} />
+            <ShieldCheck size={24} />
           </div>
           <div className="brand-text">
             <h1>Arranque Seguro</h1>
@@ -131,69 +148,85 @@ export const App: React.FC = () => {
               <LayoutDashboard size={16} /> Resultados y Documentos
             </button>
           )}
-
-          <div className="status-pill" title={health.status === "ok" ? "Backend conectado" : "Backend desconectado"}>
-            <span className={`status-dot ${health.status === "ok" ? "online" : "offline"}`} />
-            <span>{health.status === "ok" ? "API Conectada" : "Modo Local"}</span>
-          </div>
         </nav>
       </header>
 
-      {/* Mensaje de Error Global */}
-      {errorMessage && (
-        <div
-          style={{
-            background: "rgba(244, 63, 94, 0.15)",
-            border: "1px solid rgba(244, 63, 94, 0.35)",
-            padding: "0.85rem 1.25rem",
-            borderRadius: "var(--radius-md)",
-            marginBottom: "1.5rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.6rem",
-            color: "#fecdd3",
-            fontSize: "0.875rem",
-          }}
-        >
-          <AlertCircle size={18} color="#f43f5e" />
-          <span>{errorMessage}</span>
+      {/* Contenedor Principal */}
+      <div className="app-container">
+        {/* Mensaje de Error Global */}
+        {errorMessage && (
+          <div
+            style={{
+              background: "#fdf2f2",
+              border: "1px solid #f87171",
+              borderLeft: "4px solid var(--color-accent)",
+              padding: "0.85rem 1.25rem",
+              borderRadius: "var(--radius-sm)",
+              marginBottom: "1.5rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              color: "#991b1b",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+            }}
+          >
+            <AlertCircle size={18} color="var(--color-accent)" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <main>
+          {activeView === "presentation" && (
+            <LandingPresentation onStart={() => setActiveView("wizard")} />
+          )}
+
+          {activeView === "wizard" && (
+            <>
+              <ProfileSelector
+                profiles={profiles}
+                activeProfileId={activeProfileId}
+                onSelect={handleSelectProfile}
+              />
+              <WizardForm
+                initialData={currentRequest}
+                isOfficialProfile={isOfficialProfile}
+                activeProfileName={profiles.find((p) => p.id === activeProfileId)?.title || null}
+                onSubmit={handleGenerate}
+                isLoading={isLoading}
+                onFieldChange={handleFieldChange}
+              />
+            </>
+          )}
+
+          {activeView === "results" && packageData && (
+            <ResultsDashboard
+              packageData={packageData}
+              projectRequest={currentRequest}
+              onBackToForm={() => setActiveView("wizard")}
+              onDownloadZip={handleDownload}
+              isDownloading={isDownloading}
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Footer Corporativo */}
+      <footer className="institutional-footer">
+        <div className="footer-content">
+          <div>
+            <strong style={{ color: "#ffffff", fontSize: "0.9rem" }}>
+              Navitrans S.A.S. — Coordinación de Desarrollo, Tecnología e Información
+            </strong>
+            <p style={{ marginTop: "0.35rem", color: "#94a3b8", lineHeight: 1.5 }}>
+              Marco de gobernanza técnica para prototipos: Ley 1581 de 2012, OWASP Top 10, ASVS v4.0, ISO/IEC 27001 y Acuerdos de Infraestructura.
+            </p>
+          </div>
+          <div style={{ color: "#64748b", fontSize: "0.8rem" }}>
+            © {new Date().getFullYear()} Navitrans. Todos los derechos reservados.
+          </div>
         </div>
-      )}
-
-      {/* Contenido Principal según Vista */}
-      <main>
-        {activeView === "presentation" && (
-          <LandingPresentation onStart={() => setActiveView("wizard")} />
-        )}
-
-        {activeView === "wizard" && (
-          <>
-            <ProfileSelector
-              profiles={profiles}
-              activeProfileId={activeProfileId}
-              onSelect={handleSelectProfile}
-            />
-            <WizardForm
-              initialData={currentRequest}
-              isOfficialProfile={isOfficialProfile}
-              activeProfileName={profiles.find((p) => p.id === activeProfileId)?.title || null}
-              onSubmit={handleGenerate}
-              isLoading={isLoading}
-              onFieldChange={handleFieldChange}
-            />
-          </>
-        )}
-
-        {activeView === "results" && packageData && (
-          <ResultsDashboard
-            packageData={packageData}
-            projectRequest={currentRequest}
-            onBackToForm={() => setActiveView("wizard")}
-            onDownloadZip={handleDownload}
-            isDownloading={isDownloading}
-          />
-        )}
-      </main>
+      </footer>
     </div>
   );
 };

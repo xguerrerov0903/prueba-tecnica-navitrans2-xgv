@@ -7,10 +7,8 @@ import {
   Sparkles,
   Bot,
   Terminal,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Lock,
 } from "lucide-react";
 import { PackageResponse, ProjectRequest } from "../types";
 import { DocumentViewer } from "./DocumentViewer";
@@ -49,8 +47,8 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       {/* Barra superior de navegación rápida */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
         <div>
-          <h2 style={{ fontSize: "1.75rem", fontWeight: 800 }}>Resultados de Evaluación</h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+          <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--color-primary)" }}>Resultados de Evaluación</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
             Paquete oficial generado para <strong>{projectRequest.name}</strong>
           </p>
         </div>
@@ -71,7 +69,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           <h3 style={{ fontSize: "1.2rem", marginBottom: "0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <ShieldCheck size={20} /> Nivel Efectivo de Seguridad: {evaluation.effective_level.toUpperCase()}
           </h3>
-          <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
+          <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
             {getLevelDescription()}
           </p>
         </div>
@@ -79,9 +77,9 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
       {/* 2. Alertas de Seguridad Detectadas y Mitigadas */}
       {evaluation.security_alerts.length > 0 && (
-        <div className="card" style={{ borderLeft: "4px solid #f43f5e", marginBottom: "1.5rem" }}>
-          <h3 style={{ fontSize: "1.1rem", marginBottom: "0.75rem", color: "#fda4af", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <ShieldAlert size={20} color="#f43f5e" />
+        <div className="card" style={{ borderLeft: "4px solid var(--color-accent)", marginBottom: "1.5rem" }}>
+          <h3 style={{ fontSize: "1.1rem", marginBottom: "0.85rem", color: "#991b1b", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <ShieldAlert size={20} color="var(--color-accent)" />
             Hallazgos de Seguridad Detectados y Mitigados Automáticamente ({evaluation.security_alerts.length})
           </h3>
           <div style={{ display: "grid", gap: "0.75rem" }}>
@@ -89,29 +87,29 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               <div
                 key={idx}
                 style={{
-                  background: "rgba(244, 63, 94, 0.08)",
-                  border: "1px solid rgba(244, 63, 94, 0.2)",
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
                   padding: "0.85rem 1rem",
-                  borderRadius: "var(--radius-md)",
+                  borderRadius: "var(--radius-sm)",
                   fontSize: "0.85rem",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-                  <span style={{ fontWeight: 700, color: "#fecdd3" }}>
+                  <span style={{ fontWeight: 700, color: "#991b1b" }}>
                     Campo: <code>{alert.field}</code> — Tipo: <span style={{ textTransform: "uppercase" }}>{alert.alert_type}</span>
                   </span>
-                  <span style={{ fontSize: "0.75rem", background: "rgba(244, 63, 94, 0.25)", color: "#fff", padding: "0.1rem 0.5rem", borderRadius: "var(--radius-full)" }}>
+                  <span style={{ fontSize: "0.75rem", background: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.5rem", borderRadius: "var(--radius-full)", fontWeight: 700 }}>
                     Snippet: <code>{alert.snippet}</code>
                   </span>
                 </div>
-                <p style={{ color: "#ffe4e6", margin: 0 }}>{alert.detail}</p>
+                <p style={{ color: "#7f1d1d", margin: 0 }}>{alert.detail}</p>
                 {alert.alert_type === "pii" && (
-                  <p style={{ color: "#34d399", marginTop: "0.3rem", fontSize: "0.8rem", fontWeight: 600 }}>
+                  <p style={{ color: "var(--status-success)", marginTop: "0.35rem", fontSize: "0.825rem", fontWeight: 700 }}>
                     ✓ Responsable anonimizado en documentos a: "{evaluation.sanitized_owner}"
                   </p>
                 )}
                 {alert.alert_type === "injection" && (
-                  <p style={{ color: "#38bdf8", marginTop: "0.3rem", fontSize: "0.8rem", fontWeight: 600 }}>
+                  <p style={{ color: "var(--color-primary)", marginTop: "0.35rem", fontSize: "0.825rem", fontWeight: 700 }}>
                     ✓ Instrucción de evasión eliminada de la descripción oficial del proyecto.
                   </p>
                 )}
@@ -123,9 +121,9 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
       {/* 3. Contradicciones de Negocio Resueltas */}
       {evaluation.contradictions.length > 0 && (
-        <div className="card" style={{ borderLeft: "4px solid #f59e0b", marginBottom: "1.5rem" }}>
-          <h3 style={{ fontSize: "1.1rem", marginBottom: "0.75rem", color: "#fde68a", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <AlertTriangle size={20} color="#f59e0b" />
+        <div className="card" style={{ borderLeft: "4px solid var(--status-warning)", marginBottom: "1.5rem" }}>
+          <h3 style={{ fontSize: "1.1rem", marginBottom: "0.85rem", color: "#92400e", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <AlertTriangle size={20} color="var(--status-warning)" />
             Contradicciones de Negocio Resueltas Automáticamente ({evaluation.contradictions.length})
           </h3>
           <div style={{ display: "grid", gap: "0.75rem" }}>
@@ -133,18 +131,18 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               <div
                 key={idx}
                 style={{
-                  background: "rgba(245, 158, 11, 0.08)",
-                  border: "1px solid rgba(245, 158, 11, 0.2)",
+                  background: "#fffbeb",
+                  border: "1px solid #fde68a",
                   padding: "0.85rem 1rem",
-                  borderRadius: "var(--radius-md)",
+                  borderRadius: "var(--radius-sm)",
                   fontSize: "0.85rem",
                 }}
               >
-                <div style={{ fontWeight: 700, color: "#fef08a", marginBottom: "0.25rem" }}>
+                <div style={{ fontWeight: 700, color: "#78350f", marginBottom: "0.25rem" }}>
                   Conflicto entre campos: {c.fields.map((f) => <code key={f} style={{ marginRight: "4px" }}>{f}</code>)}
                 </div>
-                <p style={{ color: "#fef3c7", marginBottom: "0.4rem" }}><strong>Motivo:</strong> {c.description}</p>
-                <p style={{ color: "#a7f3d0", margin: 0 }}><strong>Resolución del motor:</strong> {c.resolution}</p>
+                <p style={{ color: "#92400e", marginBottom: "0.4rem" }}><strong>Motivo:</strong> {c.description}</p>
+                <p style={{ color: "#065f46", margin: 0, fontWeight: 600 }}><strong>Resolución del motor:</strong> {c.resolution}</p>
               </div>
             ))}
           </div>
@@ -156,20 +154,20 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
           <div>
             <h4 style={{ fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-              {intro_source === "ai_service" ? <Bot size={18} color="var(--accent-cyan)" /> : <Terminal size={18} color="var(--accent-emerald)" />}
+              {intro_source === "ai_service" ? <Bot size={18} color="var(--color-primary)" /> : <Terminal size={18} color="var(--status-success)" />}
               <span>Origen de la Redacción de Lineamientos: </span>
-              <span style={{ color: intro_source === "ai_service" ? "var(--accent-cyan)" : "var(--accent-emerald)", fontWeight: 800 }}>
+              <span style={{ color: intro_source === "ai_service" ? "var(--color-primary)" : "var(--status-success)", fontWeight: 800 }}>
                 {intro_source === "ai_service" ? "Servicio de IA Navitrans" : "Plantilla Local Resiliente (Fallback Seguro)"}
               </span>
             </h4>
             {intro_fallback_reason && (
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
                 <strong>Motivo de Fallback:</strong> {intro_fallback_reason}
               </p>
             )}
           </div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
-            Controles activados: <strong>{evaluation.mandatory_controls.length}</strong>
+          <div style={{ fontSize: "0.825rem", color: "var(--text-secondary)" }}>
+            Controles obligatorios activados: <strong style={{ color: "var(--color-primary)" }}>{evaluation.mandatory_controls.length}</strong>
           </div>
         </div>
       </div>
@@ -180,11 +178,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
           onClick={() => setShowAllRules(!showAllRules)}
         >
-          <h3 style={{ fontSize: "1.05rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Sparkles size={18} color="var(--accent-cyan)" />
+          <h3 style={{ fontSize: "1.05rem", display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-primary)" }}>
+            <Sparkles size={18} color="var(--color-primary)" />
             Trazabilidad de Reglas de Negocio (R1 — R9)
           </h3>
-          <button type="button" className="btn btn-secondary" style={{ padding: "0.25rem 0.6rem", fontSize: "0.75rem" }}>
+          <button type="button" className="btn btn-secondary" style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}>
             {showAllRules ? <>Ocultar <ChevronUp size={14} /></> : <>Ver todas las 9 reglas <ChevronDown size={14} /></>}
           </button>
         </div>
@@ -198,21 +196,21 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   display: "flex",
                   alignItems: "flex-start",
                   gap: "0.75rem",
-                  padding: "0.6rem 0.85rem",
-                  background: trace.triggered ? "rgba(14, 165, 233, 0.08)" : "rgba(255, 255, 255, 0.02)",
-                  border: trace.triggered ? "1px solid rgba(14, 165, 233, 0.25)" : "1px solid var(--border-subtle)",
+                  padding: "0.65rem 0.85rem",
+                  background: trace.triggered ? "var(--color-primary-subtle)" : "#f8fafc",
+                  border: trace.triggered ? "1px solid rgba(10, 37, 64, 0.2)" : "1px solid var(--border-light)",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "0.825rem",
                 }}
               >
-                <div style={{ fontWeight: 800, color: trace.triggered ? "var(--accent-cyan)" : "var(--text-dim)", minWidth: "32px" }}>
+                <div style={{ fontWeight: 800, color: trace.triggered ? "var(--color-primary)" : "var(--text-dim)", minWidth: "32px" }}>
                   {trace.code}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: trace.triggered ? "#fff" : "var(--text-muted)" }}>
+                  <div style={{ fontWeight: 700, color: trace.triggered ? "var(--color-primary)" : "var(--text-secondary)" }}>
                     {trace.name} {trace.triggered ? "✅" : "⚪"}
                   </div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "0.785rem" }}>{trace.reason}</div>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "0.785rem" }}>{trace.reason}</div>
                 </div>
               </div>
             ))}

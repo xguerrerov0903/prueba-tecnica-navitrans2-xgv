@@ -237,17 +237,19 @@ def _detect_contradictions(req: ProjectRequest) -> list[Contradiction]:
             resolution="Se eleva el nivel de exigencia a 'strict' y se activan todos los controles de R3.",
         ))
 
-    # C2 – Sensitive data, no login, not fully local
-    if sensitive and req.login == LoginMethod.none and req.exposure != Exposure.local:
+    # C2 – Sensitive data without login (Universal: Ley 1581 / Seguridad)
+    if sensitive and req.login == LoginMethod.none:
         contradictions.append(Contradiction(
-            fields=["data_types", "login", "exposure"],
+            fields=["data_types", "login"],
             description=(
-                "El proyecto maneja datos personales o financieros sin inicio de sesión "
-                "y está expuesto más allá del equipo local."
+                "El proyecto maneja datos personales o financieros sin inicio de sesión. "
+                "Por mandato de la Ley 1581 de 2012 y directivas de seguridad corporativa, ningún entorno "
+                "que procese datos sensibles puede operar sin autenticación y control de acceso, "
+                "incluso si se encuentra en red local o en etapa de prototipo."
             ),
             resolution=(
-                "Se agrega inicio de sesión y control de acceso como controles obligatorios. "
-                "El nivel mínimo se eleva a 'standard' (R2 prima sobre R4 para red interna)."
+                "Se fuerza inicio de sesión (login_required) y control de acceso como controles obligatorios. "
+                "El nivel mínimo de seguridad se eleva a 'standard'."
             ),
         ))
 
@@ -295,11 +297,9 @@ def _effective_level(req: ProjectRequest, contradictions: list[Contradiction]) -
 
     sensitive = bool(_SENSITIVE_DATA & set(req.data_types))
 
-    # R4 base: internal_network → basic, BUT R2 overrides if sensitive data
-    if req.exposure == Exposure.internal_network:
-        if sensitive:
-            level = EffectiveLevel.standard  # R2 > R4
-        # else stays basic
+    # Sensitive data (personal or financial) mandates at least standard level
+    if sensitive:
+        level = EffectiveLevel.standard
 
     # Anything not explicitly local or internal → at least standard
     if req.exposure not in (Exposure.local, Exposure.internal_network):
@@ -510,10 +510,13 @@ def _apply_rules(
     needs_login = (
         req.criticality == Criticality.high
         or req.exposure == Exposure.internet
-        or (sensitive and req.login == LoginMethod.none and req.exposure != Exposure.local)
+        or (sensitive and req.login == LoginMethod.none)
     )
     if needs_login and "login_required" not in controls:
         controls.append("login_required")
+
+    if sensitive and "access_control" not in controls:
+        controls.append("access_control")
 
     return traces, controls, active_integrations
 

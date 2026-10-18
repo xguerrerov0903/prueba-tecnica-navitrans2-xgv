@@ -23,7 +23,6 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback manual si clipboard API no está permitida
       const textarea = document.createElement("textarea");
       textarea.value = content;
       document.body.appendChild(textarea);
@@ -36,9 +35,9 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   };
 
   const getFileIcon = (filename: string) => {
-    if (filename.endsWith(".gitignore")) return <ShieldAlert size={14} color="#f43f5e" />;
-    if (filename.includes("INSTRUCCIONES")) return <Code2 size={14} color="#a855f7" />;
-    return <FileText size={14} color="var(--accent-cyan)" />;
+    if (filename.endsWith(".gitignore")) return <ShieldAlert size={14} color="var(--color-accent)" />;
+    if (filename.includes("INSTRUCCIONES")) return <Code2 size={14} color="var(--color-primary)" />;
+    return <FileText size={14} color="var(--color-primary)" />;
   };
 
   return (
@@ -51,7 +50,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
               type="button"
               className={`file-tab-btn ${activeFile === filename ? "active" : ""}`}
               onClick={() => setActiveFile(filename)}
-              style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}
+              style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}
             >
               {getFileIcon(filename)}
               <span>{filename}</span>
@@ -64,12 +63,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             type="button"
             className="btn btn-secondary"
             onClick={handleCopy}
-            style={{ fontSize: "0.8rem", padding: "0.4rem 0.85rem" }}
+            style={{ fontSize: "0.8rem", padding: "0.5rem 0.95rem" }}
           >
             {copied ? (
               <>
-                <Check size={14} color="#34d399" />
-                <span style={{ color: "#34d399" }}>¡Copiado!</span>
+                <Check size={14} color="var(--status-success)" />
+                <span style={{ color: "var(--status-success)", fontWeight: 700 }}>¡Copiado!</span>
               </>
             ) : (
               <>
@@ -84,9 +83,9 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             className="btn btn-primary"
             onClick={onDownloadZip}
             disabled={isDownloading}
-            style={{ fontSize: "0.8rem", padding: "0.4rem 1rem" }}
+            style={{ fontSize: "0.8rem", padding: "0.5rem 1.15rem" }}
           >
-            <Download size={14} />
+            <Download size={15} />
             <span>{isDownloading ? "Empaquetando..." : "Descargar Paquete (.zip)"}</span>
           </button>
         </div>

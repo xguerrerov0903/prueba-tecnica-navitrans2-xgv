@@ -451,6 +451,28 @@ class TestContradictionResolutions:
         res = evaluate_project(req)
         assert any("stage" in c.fields and "data_types" in c.fields for c in res.contradictions)
 
+    def test_c2_sensitive_data_without_login_even_local(self):
+        """C2: Datos personales o financieros sin login disparan contradicción C2 y fuerzan login incluso en local."""
+        req = ProjectRequest(
+            name="Test Local Sensible",
+            description="Procesamiento local de nómina.",
+            owner="Desarrollo",
+            area=Area.financiera,
+            stage=Stage.prototype,
+            audience=Audience.own_area,
+            data_types=[DataType.financial],
+            exposure=Exposure.local,
+            login=LoginMethod.none,
+            integrations=[Integration.none],
+            backend=BackendTech.python,
+            criticality=Criticality.low,
+        )
+        res = evaluate_project(req)
+        assert res.effective_level == EffectiveLevel.standard
+        assert "login_required" in res.mandatory_controls
+        assert "access_control" in res.mandatory_controls
+        assert any("data_types" in c.fields and "login" in c.fields for c in res.contradictions)
+
 
 # ===========================================================================
 # 5. SANITIZACIÓN TIPOGRÁFICA DE MARKDOWN

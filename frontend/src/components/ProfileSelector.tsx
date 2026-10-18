@@ -20,20 +20,20 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   };
 
   const getProfileIcon = (id: string) => {
-    if (id.includes("1")) return <Layers size={14} color="#34d399" />;
-    if (id.includes("2")) return <ShieldAlert size={14} color="#fbbf24" />;
-    return <Cpu size={14} color="#fb7185" />;
+    if (id.includes("1")) return <Layers size={15} color="var(--status-success)" />;
+    if (id.includes("2")) return <ShieldAlert size={15} color="var(--status-warning)" />;
+    return <Cpu size={15} color="var(--color-accent)" />;
   };
 
   return (
     <div className="profiles-banner">
       <div className="profiles-header">
         <div className="profiles-title">
-          <Sparkles size={16} color="var(--accent-cyan)" />
+          <Sparkles size={16} color="var(--color-primary)" />
           <span>Perfiles Oficiales de Prueba (Carga en 1 Clic)</span>
         </div>
         <div className="profiles-subtitle">
-          Casos oficiales de <code>docs/datos-de-prueba.md</code> para probar el motor al instante
+          Casos de <code>docs/datos-de-prueba.md</code> para demostración inmediata del motor
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
               type="button"
             >
               <div className="profile-card-top">
-                <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
                   {getProfileIcon(profile.id)}
                   <span className="profile-card-name">{profile.request.name}</span>
                 </span>

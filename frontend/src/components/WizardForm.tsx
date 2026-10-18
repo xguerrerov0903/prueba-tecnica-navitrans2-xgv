@@ -8,7 +8,6 @@ import {
   FileCheck2,
   Info,
   CheckCircle,
-  AlertTriangle,
 } from "lucide-react";
 import {
   Area,
@@ -48,13 +47,11 @@ export const WizardForm: React.FC<WizardFormProps> = ({
     setFormData(initialData);
   }, [initialData]);
 
-  // Manejo de cambios en campos de texto
   const handleTextChange = (field: keyof ProjectRequest, value: string) => {
     onFieldChange();
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Manejo de chips de selección única
   const handleSingleSelect = <K extends keyof ProjectRequest>(
     field: K,
     value: ProjectRequest[K]
@@ -63,7 +60,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Manejo de selección múltiple de DataType
   const toggleDataType = (type: DataType) => {
     onFieldChange();
     setFormData((prev) => {
@@ -71,16 +67,22 @@ export const WizardForm: React.FC<WizardFormProps> = ({
       let updated: DataType[];
       if (exists) {
         updated = prev.data_types.filter((t) => t !== type);
-        // Garantizar al menos uno
         if (updated.length === 0) updated = ["fictional"];
       } else {
         updated = [...prev.data_types, type];
       }
-      return { ...prev, data_types: updated };
+
+      // Si se activan datos personales o financieros y el login estaba en 'none' (modo manual), auto-cambiar a Entra ID
+      const hasSensitive = updated.includes("personal") || updated.includes("financial");
+      let nextLogin = prev.login;
+      if (!isOfficialProfile && hasSensitive && prev.login === "none") {
+        nextLogin = "microsoft_entra";
+      }
+
+      return { ...prev, data_types: updated, login: nextLogin };
     });
   };
 
-  // Manejo de selección múltiple de Integraciones con exclusión mutua para "none"
   const toggleIntegration = (item: Integration) => {
     onFieldChange();
     setFormData((prev) => {
@@ -111,7 +113,6 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   }
 
   const getClientBlockers = (): BlockerIssue[] => {
-    // En modo demo oficial se desactiva el bloqueo preventivo para permitir evaluar casos reales
     if (isOfficialProfile) return [];
 
     const issues: BlockerIssue[] = [];
@@ -141,14 +142,14 @@ export const WizardForm: React.FC<WizardFormProps> = ({
       });
     }
 
-    // Regla 3: Datos personales o financieros sin login en red interna o internet (R2/C2)
+    // Regla 3: Datos personales o financieros sin login (Universal: R2 / C2)
     const hasSensitiveData =
       formData.data_types.includes("personal") || formData.data_types.includes("financial");
-    if (hasSensitiveData && formData.exposure !== "local" && formData.login === "none") {
+    if (hasSensitiveData && formData.login === "none") {
       issues.push({
         id: "sensitive-login",
-        message: "Procesar datos personales o financieros más allá del equipo local exige inicio de sesión y control de acceso (R2 - Ley 1581).",
-        autofixLabel: "Habilitar Inicio de Sesión",
+        message: "Procesar datos personales o financieros exige inicio de sesión obligatorio sin importar el entorno o etapa (Ley 1581 / Seguridad TI).",
+        autofixLabel: "Habilitar Microsoft Entra ID",
         applyFix: () => {
           handleSingleSelect("login", "microsoft_entra");
         },
@@ -181,14 +182,17 @@ export const WizardForm: React.FC<WizardFormProps> = ({
     onSubmit(formData);
   };
 
+  const hasSensitiveDataSelected =
+    formData.data_types.includes("personal") || formData.data_types.includes("financial");
+
   return (
     <div className="wizard-container">
       {/* Banner de Modo Demostración */}
       {isOfficialProfile && (
         <div className="demo-mode-alert">
           <div>
-            <div style={{ fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <CheckCircle size={16} color="var(--accent-cyan)" />
+            <div style={{ fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-primary)" }}>
+              <CheckCircle size={16} color="var(--color-primary)" />
               <span>Modo Demostración Activo: {activeProfileName}</span>
             </div>
             <div className="demo-mode-text">
@@ -290,20 +294,22 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                 <span>Responsable o Equipo Solicitante *</span>
                 <span className="form-hint">Privacidad Ley 1581</span>
               </label>
-              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
                 {["Equipo de Desarrollo", "Líder Funcional del Área", "Arquitectura / TI"].map((role) => (
                   <button
                     key={role}
                     type="button"
                     onClick={() => handleTextChange("owner", role)}
                     style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.6rem",
-                      borderRadius: "9999px",
-                      background: formData.owner === role ? "rgba(14, 165, 233, 0.2)" : "rgba(255, 255, 255, 0.05)",
-                      border: formData.owner === role ? "1px solid var(--accent-cyan)" : "1px solid var(--border-subtle)",
-                      color: formData.owner === role ? "#fff" : "var(--text-muted)",
+                      fontSize: "0.775rem",
+                      fontWeight: 600,
+                      padding: "0.3rem 0.65rem",
+                      borderRadius: "var(--radius-sm)",
+                      background: formData.owner === role ? "var(--color-primary-subtle)" : "#ffffff",
+                      border: formData.owner === role ? "1px solid var(--color-primary)" : "1px solid var(--border-light)",
+                      color: formData.owner === role ? "var(--color-primary)" : "var(--text-secondary)",
                       cursor: "pointer",
+                      transition: "all var(--transition-fast)",
                     }}
                   >
                     + {role}
@@ -319,8 +325,8 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                 onChange={(e) => handleTextChange("owner", e.target.value)}
                 required
               />
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.4rem", fontSize: "0.75rem", color: "#38bdf8" }}>
-                <Info size={14} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.45rem", fontSize: "0.775rem", color: "var(--text-secondary)" }}>
+                <Info size={14} color="var(--color-primary)" />
                 <span>Por Ley 1581 (minimización de datos), registra el rol o equipo responsable. Evita ingresar cédulas o teléfonos personales.</span>
               </div>
             </div>
@@ -328,7 +334,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
             <div className="form-group">
               <label className="form-label">
                 <span>Área Solicitante *</span>
-                <span className="form-hint">Selector de negocio cerrado</span>
+                <span className="form-hint">Selector oficial de negocio</span>
               </label>
               <div className="chips-grid">
                 {[
@@ -383,7 +389,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
           <div className="step-content">
             <div className="form-group">
               <label className="form-label">
-                <span>Audiencia Prevista *</span>
+                <span>Audiencia *</span>
                 <span className="form-hint">Usuarios autorizados</span>
               </label>
               <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
@@ -406,14 +412,15 @@ export const WizardForm: React.FC<WizardFormProps> = ({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Tipo de Datos a Procesar * (Multiselección)</span>
-                <span className="form-hint">Selecciona todos los que apliquen</span>
+                <span>Tipo de Datos (Varias) *</span>
+                <span className="form-hint">Selecciona los que correspondan</span>
               </label>
+              {/* CORRECCIÓN 1: Etiquetas limpias oficiales sin texto normativo incrustado */}
               <div className="chips-grid">
                 {[
                   { value: "fictional", label: "Ficticios" },
                   { value: "internal", label: "Internos" },
-                  { value: "personal", label: "Personales (Ley 1581)" },
+                  { value: "personal", label: "Personales" },
                   { value: "financial", label: "Financieros" },
                 ].map((item) => (
                   <button
@@ -426,12 +433,20 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                   </button>
                 ))}
               </div>
+
+              {/* CORRECCIÓN 1.2: Nota normativa sutil condicional */}
+              {hasSensitiveDataSelected && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--status-warning)" }}>
+                  <Info size={14} />
+                  <span>Nota normativa: Al procesar datos personales o financieros se activarán las salvaguardas de la Ley 1581 de 2012.</span>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
               <label className="form-label">
-                <span>Nivel de Exposición de Red *</span>
-                <span className="form-hint">Perímetro de red donde vivirá</span>
+                <span>Exposición *</span>
+                <span className="form-hint">Perímetro de red</span>
               </label>
               <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {[
@@ -453,25 +468,45 @@ export const WizardForm: React.FC<WizardFormProps> = ({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Mecanismo de Inicio de Sesión *</span>
-                <span className="form-hint">Control de acceso y autenticación</span>
+                <span>Inicio de Sesión *</span>
+                <span className="form-hint">Control de acceso</span>
               </label>
               <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {[
                   { value: "none", label: "Sin inicio de sesión" },
                   { value: "own_accounts", label: "Cuentas propias" },
                   { value: "microsoft_entra", label: "Microsoft Entra ID" },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    className={`chip-btn ${formData.login === item.value ? "selected" : ""}`}
-                    onClick={() => handleSingleSelect("login", item.value as LoginMethod)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                ].map((item) => {
+                  const isNoneDisabled = !isOfficialProfile && hasSensitiveDataSelected && item.value === "none";
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      disabled={isNoneDisabled}
+                      className={`chip-btn ${formData.login === item.value ? "selected" : ""}`}
+                      style={
+                        isNoneDisabled
+                          ? { opacity: 0.45, cursor: "not-allowed", textDecoration: "line-through", background: "#f1f5f9" }
+                          : {}
+                      }
+                      title={
+                        isNoneDisabled
+                          ? "Bloqueado: Al procesar datos personales o financieros se exige inicio de sesión obligatorio."
+                          : ""
+                      }
+                      onClick={() => !isNoneDisabled && handleSingleSelect("login", item.value as LoginMethod)}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
+              {hasSensitiveDataSelected && !isOfficialProfile && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--color-accent)" }}>
+                  <Info size={14} />
+                  <span>Seguridad obligatoria: Al procesar datos personales o financieros, la opción 'Sin inicio de sesión' queda deshabilitada por Ley 1581.</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -483,14 +518,14 @@ export const WizardForm: React.FC<WizardFormProps> = ({
           <div className="step-content">
             <div className="form-group">
               <label className="form-label">
-                <span>Integraciones Externas * (Multiselección con exclusión)</span>
-                <span className="form-hint">R9: Solo se generan lineamientos para las elegidas</span>
+                <span>Integraciones (Varias) *</span>
+                <span className="form-hint">R9: Solo se generan lineamientos para lo seleccionado</span>
               </label>
               <div className="chips-grid">
                 {[
-                  { value: "erp", label: "ERP Corporativo" },
-                  { value: "email", label: "Correo Electrónico" },
-                  { value: "file_storage", label: "Almacenamiento Archivos" },
+                  { value: "erp", label: "ERP" },
+                  { value: "email", label: "Correo" },
+                  { value: "file_storage", label: "Almacenamiento de archivos" },
                   { value: "ai_service", label: "Servicio de IA" },
                   { value: "none", label: "Ninguna" },
                 ].map((item) => (
@@ -513,8 +548,8 @@ export const WizardForm: React.FC<WizardFormProps> = ({
               </label>
               <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {[
-                  { value: "python", label: "Python (FastAPI / Pydantic)" },
-                  { value: "typescript", label: "TypeScript (Node.js)" },
+                  { value: "python", label: "Python" },
+                  { value: "typescript", label: "TypeScript" },
                   { value: "other", label: "Otra" },
                 ].map((item) => (
                   <button
@@ -531,14 +566,14 @@ export const WizardForm: React.FC<WizardFormProps> = ({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Criticidad para la Operación *</span>
+                <span>Criticidad *</span>
                 <span className="form-hint">R7: Criticidad alta exige RTO/RPO y respaldo</span>
               </label>
               <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {[
-                  { value: "low", label: "Baja (Riesgo mínimo)" },
-                  { value: "medium", label: "Media (Área específica)" },
-                  { value: "high", label: "Alta (Operación crítica)" },
+                  { value: "low", label: "Baja" },
+                  { value: "medium", label: "Media" },
+                  { value: "high", label: "Alta" },
                 ].map((item) => (
                   <button
                     key={item.value}
@@ -555,7 +590,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
         )}
 
         {/* ===================================================================
-            PANEL DE BLOQUEO PREVENTIVO EN CLIENTE (MODO MANUAL)
+            BLOQUEO PREVENTIVO EN CLIENTE
             =================================================================== */}
         {isBlocked && !isOfficialProfile && (
           <div className="validation-blocker-card">
@@ -580,7 +615,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
         )}
 
         {/* ===================================================================
-            ACCIONES Y BOTONES DE NAVEGACIÓN
+            BOTONES DE NAVEGACIÓN
             =================================================================== */}
         <div className="wizard-actions">
           {currentStep > 1 ? (
@@ -608,7 +643,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
               type="submit"
               className="btn btn-primary"
               disabled={isLoading || (isBlocked && !isOfficialProfile)}
-              style={{ minWidth: "220px" }}
+              style={{ minWidth: "240px" }}
             >
               {isLoading ? (
                 <>Evaluando y Generando Paquete...</>
