@@ -281,6 +281,26 @@ def _detect_contradictions(req: ProjectRequest) -> list[Contradiction]:
             resolution="Se emite advertencia; el desarrollador debe reemplazar datos reales por ficticios.",
         ))
 
+    # C6 – Internet + datos sensibles + criticidad < high (Gobernanza crítica: ISO 27001 / Ley 1581)
+    if (
+        req.exposure == Exposure.internet
+        and sensitive
+        and req.criticality != Criticality.high
+    ):
+        contradictions.append(Contradiction(
+            fields=["exposure", "data_types", "criticality"],
+            description=(
+                "El sistema procesa datos personales o financieros y está expuesto a Internet, "
+                f"pero la criticidad declarada es '{req.criticality.value}'. "
+                "Según ISO 27001 y la Ley 1581 de 2012, esta combinación exige clasificación "
+                "obligatoria como Criticidad Alta."
+            ),
+            resolution=(
+                "Se eleva automáticamente la criticidad efectiva a 'high' y el nivel de seguridad "
+                "a 'strict'. Se activan todos los controles de R3 y R7 (RTO/RPO, respaldo, login)."
+            ),
+        ))
+
     return contradictions
 
 
@@ -315,6 +335,13 @@ def _effective_level(req: ProjectRequest, contradictions: list[Contradiction]) -
 
     # C1 contradiction also pushes to strict
     if any("stage" in c.fields and "exposure" in c.fields for c in contradictions):
+        level = EffectiveLevel.strict
+
+    # C6: internet + datos sensibles + criticidad < high → siempre strict
+    if any(
+        "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
+        for c in contradictions
+    ):
         level = EffectiveLevel.strict
 
     return level
@@ -517,6 +544,16 @@ def _apply_rules(
 
     if sensitive and "access_control" not in controls:
         controls.append("access_control")
+
+    # C6 activa: forzar controles de R7 aunque criticality != high (inmutabilidad de req preservada)
+    c6_active = any(
+        "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
+        for c in contradictions
+    )
+    if c6_active:
+        for ctrl in ["rto_rpo_definition", "backup_before_pilot", "login_required"]:
+            if ctrl not in controls:
+                controls.append(ctrl)
 
     return traces, controls, active_integrations
 

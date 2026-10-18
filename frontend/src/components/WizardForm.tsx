@@ -185,6 +185,20 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   const hasSensitiveDataSelected =
     formData.data_types.includes("personal") || formData.data_types.includes("financial");
 
+  // Bandera de gobernanza C6: internet + datos sensibles → criticidad obligatoriamente Alta
+  const mustBeHighCriticality =
+    !isOfficialProfile &&
+    hasSensitiveDataSelected &&
+    formData.exposure === "internet";
+
+  // C6: auto-corregir criticality a 'high' si aplica gobernanza (internet + datos sensibles)
+  React.useEffect(() => {
+    if (mustBeHighCriticality && formData.criticality !== "high") {
+      setFormData((prev) => ({ ...prev, criticality: "high" }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mustBeHighCriticality]);
+
   return (
     <div className="wizard-container">
       {/* Banner de Modo Demostración */}
@@ -574,17 +588,42 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                   { value: "low", label: "Baja" },
                   { value: "medium", label: "Media" },
                   { value: "high", label: "Alta" },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    className={`chip-btn ${formData.criticality === item.value ? "selected" : ""}`}
-                    onClick={() => handleSingleSelect("criticality", item.value as Criticality)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                ].map((item) => {
+                  const isDisabledByCriticality =
+                    mustBeHighCriticality && (item.value === "low" || item.value === "medium");
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      disabled={isDisabledByCriticality}
+                      className={`chip-btn ${formData.criticality === item.value ? "selected" : ""}`}
+                      style={
+                        isDisabledByCriticality
+                          ? { opacity: 0.45, cursor: "not-allowed", textDecoration: "line-through", background: "#f1f5f9" }
+                          : {}
+                      }
+                      title={
+                        isDisabledByCriticality
+                          ? "Bloqueado: Los sistemas con datos personales o financieros expuestos a Internet deben clasificarse obligatoriamente como Criticidad Alta (Ley 1581 / ISO 27001)."
+                          : ""
+                      }
+                      onClick={() => !isDisabledByCriticality && handleSingleSelect("criticality", item.value as Criticality)}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
+              {mustBeHighCriticality && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--color-accent)", lineHeight: "1.4" }}>
+                  <ShieldCheck size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
+                  <span>
+                    <strong>Nota de Gobernanza TI:</strong> Los sistemas con exposición a Internet que
+                    procesan datos personales o financieros deben ser clasificados obligatoriamente con
+                    Criticidad Alta por cumplimiento de la Ley 1581 (ISO 27001 / NIST).
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

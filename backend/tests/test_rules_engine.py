@@ -492,3 +492,106 @@ class TestMarkdownSanitization:
         assert "\n" not in escaped
         assert "\r" not in escaped
         assert escaped == "Primera línea Segunda línea Tercera línea"
+
+
+# ===========================================================================
+# 6. PRUEBAS DE GOBERNANZA C6: INTERNET + DATOS SENSIBLES + CRITICIDAD
+# ===========================================================================
+
+class TestGovernanceC6InternetSensitiveCriticality:
+    """
+    Valida la regla de gobernanza C6: cuando un sistema procesa datos personales o
+    financieros y tiene exposición a Internet, la criticidad debe ser obligatoriamente
+    Alta (ISO 27001 / Ley 1581). Una criticidad declarada 'low' o 'medium' debe disparar
+    la contradicción C6 y forzar nivel 'strict' con controles de R7.
+    """
+
+    def _base_req(self, **overrides) -> ProjectRequest:
+        """Fábrica de ProjectRequest base para los tests C6."""
+        defaults = dict(
+            name="Portal de Clientes",
+            description="Gestión de datos de clientes desde la web.",
+            owner="Equipo de desarrollo",
+            area=Area.comercial,
+            stage=Stage.pilot,
+            audience=Audience.external_clients,
+            data_types=[DataType.personal],
+            exposure=Exposure.internet,
+            login=LoginMethod.microsoft_entra,
+            integrations=[Integration.none],
+            backend=BackendTech.typescript,
+            criticality=Criticality.low,
+        )
+        defaults.update(overrides)
+        return ProjectRequest(**defaults)
+
+    def test_c6_internet_personal_data_low_criticality_forces_strict(self):
+        """
+        C6: Datos personales + Internet + criticidad 'low' debe disparar C6,
+        elevar el nivel a 'strict' y activar los controles de R7.
+        """
+        req = self._base_req(data_types=[DataType.personal], criticality=Criticality.low)
+        res = evaluate_project(req)
+
+        # C6 debe estar presente en las contradicciones
+        c6_contradictions = [
+            c for c in res.contradictions
+            if "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
+        ]
+        assert len(c6_contradictions) == 1, (
+            "C6 debe dispararse exactamente una vez para internet + personal + low."
+        )
+
+        # El nivel efectivo debe ser strict (por C6)
+        assert res.effective_level == EffectiveLevel.strict
+
+        # Los controles de R7 deben estar presentes aunque criticality == low
+        assert "rto_rpo_definition" in res.mandatory_controls
+        assert "backup_before_pilot" in res.mandatory_controls
+        assert "login_required" in res.mandatory_controls
+
+    def test_c6_internet_financial_data_medium_criticality_forces_strict(self):
+        """
+        C6: Datos financieros + Internet + criticidad 'medium' debe disparar C6,
+        elevar el nivel a 'strict' y activar los controles de R7.
+        """
+        req = self._base_req(data_types=[DataType.financial], criticality=Criticality.medium)
+        res = evaluate_project(req)
+
+        # C6 debe estar presente
+        c6_contradictions = [
+            c for c in res.contradictions
+            if "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
+        ]
+        assert len(c6_contradictions) == 1, (
+            "C6 debe dispararse exactamente una vez para internet + financial + medium."
+        )
+
+        # Nivel efectivo: strict
+        assert res.effective_level == EffectiveLevel.strict
+
+        # Controles de R7 activos por C6
+        assert "rto_rpo_definition" in res.mandatory_controls
+        assert "backup_before_pilot" in res.mandatory_controls
+        assert "login_required" in res.mandatory_controls
+
+    def test_c6_does_not_fire_when_criticality_already_high(self):
+        """
+        C6 NO debe dispararse si la criticidad ya es 'high'.
+        El nivel debe seguir siendo strict (por R7 / R3), sin contradicción duplicada.
+        """
+        req = self._base_req(data_types=[DataType.personal], criticality=Criticality.high)
+        res = evaluate_project(req)
+
+        # C6 no debe aparecer
+        c6_contradictions = [
+            c for c in res.contradictions
+            if "criticality" in c.fields and "exposure" in c.fields and "data_types" in c.fields
+        ]
+        assert len(c6_contradictions) == 0, (
+            "C6 no debe dispararse cuando criticality ya es 'high'."
+        )
+
+        # El nivel sigue siendo strict (por R3 + R7), pero por motivos correctos
+        assert res.effective_level == EffectiveLevel.strict
+
