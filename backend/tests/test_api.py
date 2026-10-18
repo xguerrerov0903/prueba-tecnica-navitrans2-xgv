@@ -206,3 +206,100 @@ def test_cors_expose_content_disposition():
 
     expose_headers = response.headers.get("access-control-expose-headers", "")
     assert "Content-Disposition" in expose_headers or "content-disposition" in expose_headers.lower()
+
+
+# ===========================================================================
+# 6. PRUEBAS DE NUEVAS TECNOLOGÍAS DE BACKEND (HTTP)
+# ===========================================================================
+
+def test_java_backend_gitignore_via_api():
+    """Verifica que Java genera patrones JVM en el .gitignore vía /api/generate-package."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["backend"] = "java"
+    payload["criticality"] = "medium"
+    response = client.post("/api/generate-package", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    gitignore = data["files"][".gitignore"]
+    assert "target/" in gitignore
+    assert "*.jar" in gitignore
+    assert ".gradle/" in gitignore
+
+
+def test_go_backend_gitignore_via_api():
+    """Verifica que Go genera patrones correctos en el .gitignore vía /api/generate-package."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["backend"] = "go"
+    payload["criticality"] = "medium"
+    response = client.post("/api/generate-package", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    gitignore = data["files"][".gitignore"]
+    assert "vendor/" in gitignore
+    assert "*.exe" in gitignore
+    assert "bin/" in gitignore
+
+
+# ===========================================================================
+# 7. PRUEBAS DE GOBERNANZA DE CRITICIDAD EN INTERNET (HTTP)
+# ===========================================================================
+
+def test_internet_low_criticality_gets_c7_via_api():
+    """Internet + low criticality (datos no sensibles) → contradicción C7 vía /api/evaluate."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["exposure"] = "internet"
+    payload["criticality"] = "low"
+    payload["data_types"] = ["fictional"]
+    payload["login"] = "microsoft_entra"
+    response = client.post("/api/evaluate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    contradictions = data["contradictions"]
+    c7 = [
+        c for c in contradictions
+        if "criticality" in c["fields"] and "exposure" in c["fields"] and "data_types" not in c["fields"]
+    ]
+    assert len(c7) >= 1, "C7 debe dispararse para internet + fictional + low"
+
+
+def test_internet_sensitive_non_high_gets_c6_via_api():
+    """Internet + personal + medium → contradicción C6 y nivel strict vía /api/evaluate."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["exposure"] = "internet"
+    payload["criticality"] = "medium"
+    payload["data_types"] = ["personal"]
+    payload["login"] = "microsoft_entra"
+    response = client.post("/api/evaluate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["effective_level"] == "strict"
+    contradictions = data["contradictions"]
+    c6 = [
+        c for c in contradictions
+        if "data_types" in c["fields"] and "criticality" in c["fields"] and "exposure" in c["fields"]
+    ]
+    assert len(c6) >= 1, "C6 debe dispararse para internet + personal + medium"
+
+
+def test_new_backend_enum_validation_java():
+    """Verifica que el servidor acepta 'java' como valor válido de backend."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["backend"] = "java"
+    response = client.post("/api/evaluate", json=payload)
+    assert response.status_code == 200
+
+
+def test_new_backend_enum_validation_rust():
+    """Verifica que el servidor acepta 'rust' como valor válido de backend."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["backend"] = "rust"
+    response = client.post("/api/evaluate", json=payload)
+    assert response.status_code == 200
+
+
+def test_invalid_backend_enum_still_returns_422():
+    """Verifica que el servidor sigue rechazando valores de backend no válidos."""
+    payload = OFFICIAL_PROFILES[0].request.model_dump(mode="json")
+    payload["backend"] = "cobol"
+    response = client.post("/api/evaluate", json=payload)
+    assert response.status_code == 422

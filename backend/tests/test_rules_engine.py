@@ -595,3 +595,228 @@ class TestGovernanceC6InternetSensitiveCriticality:
         # El nivel sigue siendo strict (por R3 + R7), pero por motivos correctos
         assert res.effective_level == EffectiveLevel.strict
 
+
+# ===========================================================================
+# 7. PRUEBAS DE GOBERNANZA C7: INTERNET + CRITICALITY LOW SIN DATOS SENSIBLES
+# ===========================================================================
+
+class TestInternetCriticalityGovernance:
+    """
+    Valida C7: cuando exposure == internet y criticality == low sin datos sensibles,
+    se dispara la contradicción C7 y el nivel efectivo se eleva.
+    También verifica que el Caso A (datos sensibles) sigue cubierto por C6.
+    """
+
+    def _base_request(self, **kwargs) -> ProjectRequest:
+        """Fixture base reutilizable para pruebas de criticidad en Internet."""
+        defaults = dict(
+            name="Test Internet Criticality",
+            description="Test de gobernanza de criticidad en Internet",
+            owner="Equipo TI",
+            area=Area.comercial,
+            stage=Stage.pilot,
+            audience=Audience.external_clients,
+            data_types=[DataType.internal],
+            exposure=Exposure.internet,
+            login=LoginMethod.microsoft_entra,
+            integrations=[Integration.none],
+            backend=BackendTech.python,
+            criticality=Criticality.medium,
+        )
+        defaults.update(kwargs)
+        return ProjectRequest(**defaults)
+
+    def test_caso_a_internet_sensitive_low_triggers_c6_and_strict(self):
+        """Caso A: internet + personal + criticality=low → C6, strict, controles R7."""
+        req = self._base_request(
+            data_types=[DataType.personal],
+            criticality=Criticality.low,
+        )
+        res = evaluate_project(req)
+        assert res.effective_level == EffectiveLevel.strict
+        c6 = [
+            c for c in res.contradictions
+            if "criticality" in c.fields and "data_types" in c.fields and "exposure" in c.fields
+        ]
+        assert len(c6) >= 1
+        assert "rto_rpo_definition" in res.mandatory_controls
+        assert "backup_before_pilot" in res.mandatory_controls
+        assert "login_required" in res.mandatory_controls
+
+    def test_caso_a_internet_financial_medium_triggers_c6(self):
+        """Caso A: internet + financial + criticality=medium → C6, fuerza strict."""
+        req = self._base_request(
+            data_types=[DataType.financial],
+            criticality=Criticality.medium,
+        )
+        res = evaluate_project(req)
+        assert res.effective_level == EffectiveLevel.strict
+        c6 = [
+            c for c in res.contradictions
+            if "criticality" in c.fields and "data_types" in c.fields and "exposure" in c.fields
+        ]
+        assert len(c6) >= 1
+
+    def test_caso_a_internet_sensitive_high_no_c6(self):
+        """Caso A: internet + personal + criticality=high → sin contradicción C6, strict limpio."""
+        req = self._base_request(
+            data_types=[DataType.personal],
+            criticality=Criticality.high,
+        )
+        res = evaluate_project(req)
+        assert res.effective_level == EffectiveLevel.strict
+        c6 = [
+            c for c in res.contradictions
+            if "criticality" in c.fields and "data_types" in c.fields and "exposure" in c.fields
+        ]
+        assert len(c6) == 0
+
+    def test_caso_b_internet_fictional_low_triggers_c7(self):
+        """Caso B: internet + fictional + criticality=low → C7 se dispara."""
+        req = self._base_request(
+            data_types=[DataType.fictional],
+            criticality=Criticality.low,
+        )
+        res = evaluate_project(req)
+        # Internet siempre eleva a strict por R3 (exposure=internet → strict en _effective_level)
+        assert res.effective_level == EffectiveLevel.strict
+        c7 = [
+            c for c in res.contradictions
+            if "exposure" in c.fields and "criticality" in c.fields and "data_types" not in c.fields
+        ]
+        assert len(c7) >= 1, "C7 debe dispararse para internet + fictional + low"
+
+    def test_caso_b_internet_internal_low_triggers_c7(self):
+        """Caso B: internet + internal + criticality=low → C7 se dispara."""
+        req = self._base_request(
+            data_types=[DataType.internal],
+            criticality=Criticality.low,
+        )
+        res = evaluate_project(req)
+        c7 = [
+            c for c in res.contradictions
+            if "exposure" in c.fields and "criticality" in c.fields and "data_types" not in c.fields
+        ]
+        assert len(c7) >= 1, "C7 debe dispararse para internet + internal + low"
+
+    def test_caso_b_internet_internal_medium_no_c7(self):
+        """Caso B: internet + internal + criticality=medium → sin C7 (medium es válido)."""
+        req = self._base_request(
+            data_types=[DataType.internal],
+            criticality=Criticality.medium,
+        )
+        res = evaluate_project(req)
+        c7 = [
+            c for c in res.contradictions
+            if "exposure" in c.fields and "criticality" in c.fields and "data_types" not in c.fields
+        ]
+        assert len(c7) == 0, "C7 no debe dispararse para internet + internal + medium"
+
+    def test_c7_does_not_fire_when_data_is_sensitive(self):
+        """C7 NO debe dispararse cuando los datos son sensibles (ese caso lo cubre C6)."""
+        req = self._base_request(
+            data_types=[DataType.personal],
+            criticality=Criticality.low,
+        )
+        res = evaluate_project(req)
+        c7 = [
+            c for c in res.contradictions
+            if "exposure" in c.fields and "criticality" in c.fields and "data_types" not in c.fields
+        ]
+        assert len(c7) == 0, "C7 no debe dispararse cuando los datos son sensibles (eso es C6)"
+
+
+# ===========================================================================
+# 8. PRUEBAS DE NUEVAS TECNOLOGÍAS DE BACKEND (R8 - .gitignore)
+# ===========================================================================
+
+class TestNewBackendTechs:
+    """
+    Valida que R8 (.gitignore) genera los patrones correctos para cada
+    una de las 10 tecnologías de backend soportadas.
+    """
+
+    def _build_req(self, backend: BackendTech) -> ProjectRequest:
+        """Fábrica de ProjectRequest para pruebas de tecnología de backend."""
+        return ProjectRequest(
+            name="Test Backend Tech",
+            description="Validación de patrones de .gitignore por tecnología",
+            owner="Equipo TI",
+            area=Area.comercial,
+            stage=Stage.prototype,
+            audience=Audience.own_area,
+            data_types=[DataType.fictional],
+            exposure=Exposure.local,
+            login=LoginMethod.none,
+            integrations=[Integration.none],
+            backend=backend,
+            criticality=Criticality.low,
+        )
+
+    @pytest.mark.parametrize("tech,expected_patterns", [
+        ("python",     ["__pycache__/", ".venv/", ".pytest_cache/"]),
+        ("typescript", ["node_modules/", "*.tsbuildinfo", ".next/"]),
+        ("java",       ["target/", "*.jar", ".gradle/", "*.class"]),
+        ("kotlin",     ["target/", "*.jar", ".gradle/", "*.class"]),
+        ("csharp",     ["bin/", "obj/", "*.csproj.user", ".vs/"]),
+        ("go",         ["bin/", "vendor/", "*.exe"]),
+        ("php",        ["vendor/", ".phpunit.result.cache", "storage/logs/"]),
+        ("ruby",       [".bundle/", "log/", "tmp/", "vendor/bundle/"]),
+        ("rust",       ["target/", "Cargo.lock", "*.rlib"]),
+        ("other",      ["build/", "dist/", "bin/"]),
+    ])
+    def test_gitignore_patterns(self, tech: str, expected_patterns: list[str]):
+        """Verifica que el .gitignore generado contiene los patrones esperados para cada tech."""
+        req = self._build_req(BackendTech(tech))
+        res = evaluate_project(req)
+        pkg = generate_package(req, res)
+        gitignore = pkg.files[".gitignore"]
+        for pattern in expected_patterns:
+            assert pattern in gitignore, (
+                f"Patrón '{pattern}' no encontrado en .gitignore para tech='{tech}'"
+            )
+
+    def test_all_techs_include_base_gitignore_rules(self):
+        """Todas las tecnologías deben incluir las reglas base (R8: .env, AGENTS.md, .cursor/)."""
+        for tech_value in ["python", "typescript", "java", "csharp", "go",
+                           "php", "ruby", "rust", "kotlin", "other"]:
+            req = self._build_req(BackendTech(tech_value))
+            res = evaluate_project(req)
+            pkg = generate_package(req, res)
+            gitignore = pkg.files[".gitignore"]
+            assert ".env" in gitignore,       f"Falta .env en .gitignore para tech='{tech_value}'"
+            assert "AGENTS.md" in gitignore,  f"Falta AGENTS.md en .gitignore para tech='{tech_value}'"
+            assert ".cursor/" in gitignore,   f"Falta .cursor/ en .gitignore para tech='{tech_value}'"
+            assert "*.key" in gitignore,      f"Falta *.key en .gitignore para tech='{tech_value}'"
+
+    def test_java_label_in_documents(self):
+        """Java debe aparecer con label descriptivo en DECISIONES.md e INSTRUCCIONES_IA.md."""
+        req = self._build_req(BackendTech.java)
+        res = evaluate_project(req)
+        pkg = generate_package(req, res)
+        assert "Java (Spring Boot)" in pkg.files["DECISIONES.md"]
+        assert "Java (Spring Boot / Maven)" in pkg.files["INSTRUCCIONES_IA.md"]
+
+    def test_csharp_label_in_documents(self):
+        """C# debe aparecer con label descriptivo en DECISIONES.md e INSTRUCCIONES_IA.md."""
+        req = self._build_req(BackendTech.csharp)
+        res = evaluate_project(req)
+        pkg = generate_package(req, res)
+        assert "C# / .NET" in pkg.files["DECISIONES.md"]
+        assert "ASP.NET Core" in pkg.files["INSTRUCCIONES_IA.md"]
+
+    def test_rust_label_in_documents(self):
+        """Rust debe aparecer con label descriptivo en INSTRUCCIONES_IA.md."""
+        req = self._build_req(BackendTech.rust)
+        res = evaluate_project(req)
+        pkg = generate_package(req, res)
+        assert "Rust (Actix-web / Axum)" in pkg.files["INSTRUCCIONES_IA.md"]
+
+    def test_other_tech_preserves_backward_compat(self):
+        """'other' debe seguir generando artefactos genéricos sin romper tests existentes."""
+        req = self._build_req(BackendTech.other)
+        res = evaluate_project(req)
+        pkg = generate_package(req, res)
+        assert "build/" in pkg.files[".gitignore"]
+        assert "dist/" in pkg.files[".gitignore"]
+        assert set(pkg.files.keys()) == {"DECISIONES.md", "LINEAMIENTOS.md", "INSTRUCCIONES_IA.md", ".gitignore"}

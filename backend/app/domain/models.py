@@ -58,9 +58,18 @@ class Integration(str, Enum):
 
 
 class BackendTech(str, Enum):
-    python = "python"
+    # Top 5 principales (botones primarios en el frontend)
+    python     = "python"
     typescript = "typescript"
-    other = "other"
+    java       = "java"
+    csharp     = "csharp"
+    go         = "go"
+    # 5 secundarias (menú desplegable "Otra...")
+    php        = "php"
+    ruby       = "ruby"
+    rust       = "rust"
+    kotlin     = "kotlin"
+    other      = "other"   # Preserva compatibilidad con tests existentes
 
 
 class Criticality(str, Enum):

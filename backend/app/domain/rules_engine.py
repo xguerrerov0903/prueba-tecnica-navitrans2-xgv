@@ -301,6 +301,25 @@ def _detect_contradictions(req: ProjectRequest) -> list[Contradiction]:
             ),
         ))
 
+    # C7 – Internet + cualquier dato sin sensible + criticality == low (Superficie de ataque pública)
+    if (
+        req.exposure == Exposure.internet
+        and not sensitive
+        and req.criticality == Criticality.low
+    ):
+        contradictions.append(Contradiction(
+            fields=["exposure", "criticality"],
+            description=(
+                "El sistema está expuesto a Internet con criticidad declarada 'Baja'. "
+                "Ningún sistema con superficie de ataque pública puede tener criticidad baja "
+                "independientemente del tipo de dato (Gobernanza TI Navitrans)."
+            ),
+            resolution=(
+                "Se eleva el nivel efectivo mínimo a 'standard'. "
+                "Reclasifica la criticidad como 'Media' o 'Alta' según el impacto operativo real."
+            ),
+        ))
+
     return contradictions
 
 
@@ -343,6 +362,16 @@ def _effective_level(req: ProjectRequest, contradictions: list[Contradiction]) -
         for c in contradictions
     ):
         level = EffectiveLevel.strict
+
+    # C7: internet + criticality low (sin datos sensibles) → mínimo standard
+    if any(
+        "exposure" in c.fields
+        and "criticality" in c.fields
+        and "data_types" not in c.fields
+        for c in contradictions
+    ):
+        if level == EffectiveLevel.basic:
+            level = EffectiveLevel.standard
 
     return level
 

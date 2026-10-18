@@ -185,19 +185,29 @@ export const WizardForm: React.FC<WizardFormProps> = ({
   const hasSensitiveDataSelected =
     formData.data_types.includes("personal") || formData.data_types.includes("financial");
 
-  // Bandera de gobernanza C6: internet + datos sensibles → criticidad obligatoriamente Alta
+  // CASO A: Internet + datos sensibles → SIEMPRE criticidad Alta (aplica incluso en modo perfil oficial)
   const mustBeHighCriticality =
-    !isOfficialProfile &&
-    hasSensitiveDataSelected &&
-    formData.exposure === "internet";
+    hasSensitiveDataSelected && formData.exposure === "internet";
 
-  // C6: auto-corregir criticality a 'high' si aplica gobernanza (internet + datos sensibles)
+  // CASO B: Internet + cualquier dato sin sensible → criticidad mínima Media
+  const mustBeAtLeastMediumCriticality =
+    formData.exposure === "internet" && !hasSensitiveDataSelected;
+
+  // Auto-corrección CASO A: forzar "high" si internet + datos sensibles
   React.useEffect(() => {
     if (mustBeHighCriticality && formData.criticality !== "high") {
       setFormData((prev) => ({ ...prev, criticality: "high" }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mustBeHighCriticality]);
+
+  // Auto-corrección CASO B: elevar de "low" a "medium" si internet sin datos sensibles
+  React.useEffect(() => {
+    if (mustBeAtLeastMediumCriticality && formData.criticality === "low") {
+      setFormData((prev) => ({ ...prev, criticality: "medium" }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mustBeAtLeastMediumCriticality]);
 
   return (
     <div className="wizard-container">
@@ -560,22 +570,64 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                 <span>Tecnología del Backend *</span>
                 <span className="form-hint">Determina las reglas de .gitignore (R8)</span>
               </label>
-              <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-                {[
-                  { value: "python", label: "Python" },
-                  { value: "typescript", label: "TypeScript" },
-                  { value: "other", label: "Otra" },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    className={`chip-btn ${formData.backend === item.value ? "selected" : ""}`}
-                    onClick={() => handleSingleSelect("backend", item.value as BackendTech)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+              {/* Tecnologías primarias: Top 5 + botón "Otra..." */}
+              {(() => {
+                const SECONDARY_TECHS = ["php", "ruby", "rust", "kotlin", "other"] as BackendTech[];
+                const showOtherDropdown = SECONDARY_TECHS.includes(formData.backend as BackendTech);
+                return (
+                  <>
+                    <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+                      {[
+                        { value: "python",     label: "Python" },
+                        { value: "typescript", label: "TypeScript / Node.js" },
+                        { value: "java",       label: "Java" },
+                        { value: "csharp",     label: "C# / .NET" },
+                        { value: "go",         label: "Go" },
+                        { value: "__other__",  label: "Otra..." },
+                      ].map((item) => {
+                        const isOtherBtn = item.value === "__other__";
+                        const isSelected = isOtherBtn
+                          ? showOtherDropdown
+                          : formData.backend === item.value;
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            id={`backend-btn-${item.value}`}
+                            className={`chip-btn ${isSelected ? "selected" : ""}`}
+                            onClick={() => {
+                              if (isOtherBtn) {
+                                if (!showOtherDropdown) handleSingleSelect("backend", "other" as BackendTech);
+                              } else {
+                                handleSingleSelect("backend", item.value as BackendTech);
+                              }
+                            }}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Menú desplegable — solo visible cuando el valor actual es secundario */}
+                    {showOtherDropdown && (
+                      <select
+                        id="backend-other-select"
+                        className="form-input"
+                        style={{ marginTop: "0.75rem" }}
+                        value={formData.backend}
+                        onChange={(e) => handleSingleSelect("backend", e.target.value as BackendTech)}
+                      >
+                        <option value="php">PHP (Laravel / Symfony)</option>
+                        <option value="ruby">Ruby (Ruby on Rails)</option>
+                        <option value="rust">Rust (Actix / Axum)</option>
+                        <option value="kotlin">Kotlin (Ktor / Spring)</option>
+                        <option value="other">Otro stack / Genérico</option>
+                      </select>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             <div className="form-group">
@@ -585,12 +637,15 @@ export const WizardForm: React.FC<WizardFormProps> = ({
               </label>
               <div className="chips-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {[
-                  { value: "low", label: "Baja" },
+                  { value: "low",    label: "Baja" },
                   { value: "medium", label: "Media" },
-                  { value: "high", label: "Alta" },
+                  { value: "high",   label: "Alta" },
                 ].map((item) => {
-                  const isDisabledByCriticality =
-                    mustBeHighCriticality && (item.value === "low" || item.value === "medium");
+                  // CASO A: internet + sensible → bloquear Baja y Media
+                  const isDisabledCaseA = mustBeHighCriticality && (item.value === "low" || item.value === "medium");
+                  // CASO B: internet sin sensible → bloquear solo Baja
+                  const isDisabledCaseB = mustBeAtLeastMediumCriticality && item.value === "low";
+                  const isDisabledByCriticality = isDisabledCaseA || isDisabledCaseB;
                   return (
                     <button
                       key={item.value}
@@ -603,8 +658,10 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                           : {}
                       }
                       title={
-                        isDisabledByCriticality
+                        isDisabledCaseA
                           ? "Bloqueado: Los sistemas con datos personales o financieros expuestos a Internet deben clasificarse obligatoriamente como Criticidad Alta (Ley 1581 / ISO 27001)."
+                          : isDisabledCaseB
+                          ? "Bloqueado: Ningún sistema expuesto a Internet puede tener Criticidad Baja (Gobernanza TI Navitrans)."
                           : ""
                       }
                       onClick={() => !isDisabledByCriticality && handleSingleSelect("criticality", item.value as Criticality)}
@@ -614,6 +671,7 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                   );
                 })}
               </div>
+              {/* Nota CASO A */}
               {mustBeHighCriticality && (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--color-accent)", lineHeight: "1.4" }}>
                   <ShieldCheck size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
@@ -621,6 +679,17 @@ export const WizardForm: React.FC<WizardFormProps> = ({
                     <strong>Nota de Gobernanza TI:</strong> Los sistemas con exposición a Internet que
                     procesan datos personales o financieros deben ser clasificados obligatoriamente con
                     Criticidad Alta por cumplimiento de la Ley 1581 (ISO 27001 / NIST).
+                  </span>
+                </div>
+              )}
+              {/* Nota CASO B */}
+              {mustBeAtLeastMediumCriticality && !mustBeHighCriticality && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginTop: "0.55rem", fontSize: "0.775rem", color: "var(--status-warning)", lineHeight: "1.4" }}>
+                  <ShieldCheck size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
+                  <span>
+                    <strong>Nota de Gobernanza TI:</strong> Ningún sistema con exposición pública a
+                    Internet puede clasificarse como Criticidad Baja (superficie de ataque pública).
+                    Selecciona <strong>Media</strong> o <strong>Alta</strong>.
                   </span>
                 </div>
               )}

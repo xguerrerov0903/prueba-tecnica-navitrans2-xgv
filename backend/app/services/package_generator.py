@@ -119,9 +119,16 @@ def _generate_decisiones_md(
     integ_str = _format_list_spanish([integrations_es.get(i, i.value) for i in req.integrations])
 
     backend_es = {
-        BackendTech.python: "Python",
-        BackendTech.typescript: "TypeScript",
-        BackendTech.other: "Otra",
+        BackendTech.python:     "Python (FastAPI / Pydantic)",
+        BackendTech.typescript: "TypeScript / Node.js",
+        BackendTech.java:       "Java (Spring Boot)",
+        BackendTech.csharp:     "C# / .NET",
+        BackendTech.go:         "Go (Golang)",
+        BackendTech.php:        "PHP (Laravel / Symfony)",
+        BackendTech.ruby:       "Ruby on Rails",
+        BackendTech.rust:       "Rust (Actix / Axum)",
+        BackendTech.kotlin:     "Kotlin (Ktor / Spring)",
+        BackendTech.other:      "Otro / Stack Genérico",
     }.get(req.backend, req.backend.value)
 
     criticality_es = {
@@ -353,7 +360,19 @@ def _generate_instrucciones_ia_md(
     evaluation: EvaluationResult,
 ) -> str:
     level_str = evaluation.effective_level.value.upper()
-    tech_str = "Python (FastAPI / Pydantic)" if req.backend == BackendTech.python else "TypeScript / Node.js"
+    _TECH_LABEL = {
+        BackendTech.python:     "Python (FastAPI / Pydantic)",
+        BackendTech.typescript: "TypeScript / Node.js (Express / Fastify / NestJS)",
+        BackendTech.java:       "Java (Spring Boot / Maven)",
+        BackendTech.csharp:     "C# / .NET (ASP.NET Core)",
+        BackendTech.go:         "Go (Golang / Gin / Fiber)",
+        BackendTech.php:        "PHP (Laravel / Symfony)",
+        BackendTech.ruby:       "Ruby (Ruby on Rails)",
+        BackendTech.rust:       "Rust (Actix-web / Axum)",
+        BackendTech.kotlin:     "Kotlin (Ktor / Spring Boot)",
+        BackendTech.other:      "Stack Genérico / Personalizado",
+    }
+    tech_str = _TECH_LABEL.get(req.backend, req.backend.value)
 
     md = f"""# Instrucciones para el Asistente de IA: {req.name}
 
@@ -491,6 +510,67 @@ coverage/
 *.tsbuildinfo
 .npm
 .yarn/
+"""
+    elif req.backend in (BackendTech.java, BackendTech.kotlin):
+        gi += """
+# Artefactos JVM — Java / Kotlin (Maven / Gradle)
+target/
+*.jar
+*.war
+*.ear
+*.class
+.gradle/
+build/
+out/
+.idea/
+*.iml
+"""
+    elif req.backend == BackendTech.csharp:
+        gi += """
+# Artefactos .NET — C# / ASP.NET Core
+bin/
+obj/
+*.user
+*.suo
+*.csproj.user
+*.sln.user
+.vs/
+packages/
+"""
+    elif req.backend == BackendTech.go:
+        gi += """
+# Artefactos Go (Golang)
+bin/
+vendor/
+*.exe
+*.test
+"""
+    elif req.backend == BackendTech.php:
+        gi += """
+# Artefactos PHP (Laravel / Symfony)
+vendor/
+.phpunit.result.cache
+storage/logs/
+storage/framework/cache/
+bootstrap/cache/
+.env.testing
+"""
+    elif req.backend == BackendTech.ruby:
+        gi += """
+# Artefactos Ruby on Rails
+.bundle/
+vendor/bundle/
+log/
+tmp/
+*.sqlite3
+coverage/
+"""
+    elif req.backend == BackendTech.rust:
+        gi += """
+# Artefactos Rust (Cargo)
+target/
+Cargo.lock
+*.rlib
 """
     else:
         gi += """

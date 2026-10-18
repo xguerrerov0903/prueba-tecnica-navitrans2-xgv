@@ -15,7 +15,17 @@ export type LoginMethod = "none" | "own_accounts" | "microsoft_entra";
 
 export type Integration = "erp" | "email" | "file_storage" | "ai_service" | "none";
 
-export type BackendTech = "python" | "typescript" | "other";
+export type BackendTech =
+  | "python"
+  | "typescript"
+  | "java"
+  | "csharp"
+  | "go"
+  | "php"
+  | "ruby"
+  | "rust"
+  | "kotlin"
+  | "other";
 
 export type Criticality = "low" | "medium" | "high";
 
