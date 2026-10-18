@@ -1,4 +1,8 @@
-# Variables de entorno y secretos
+# ===================================================================
+# Arranque Seguro - Reglas de Exclusión de Git (.gitignore)
+# ===================================================================
+
+# Variables de entorno y secretos (Regla R1 / OWASP ASVS)
 .env
 .env.*
 !.env.example
@@ -16,15 +20,29 @@ CLAUDE.md
 # Dependencias y entornos virtuales (Python + Node/TypeScript)
 __pycache__/
 *.py[cod]
+*$py.class
 .venv/
 venv/
+env/
+ENV/
 .pytest_cache/
+.coverage
+htmlcov/
 node_modules/
 dist/
 build/
 .next/
 
+# Archivos de volcado y temporales
+estructura.txt
+*.tmp
+*.temp
+*.log
+*.swp
+*.bak
+
 # Archivos de sistema e IDE
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/

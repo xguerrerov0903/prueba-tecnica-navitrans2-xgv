@@ -1,0 +1,48 @@
+# ===================================================================
+# Arranque Seguro - Reglas .gitignore del Proyecto
+# ===================================================================
+
+# Variables de entorno y secretos locales (R8)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.pfx
+secrets/
+config/secrets.*
+
+# Configuraciones personales de Asistentes de IA (R8)
+AGENTS.md
+CLAUDE.md
+.claude/
+.cursor/
+.codex/
+.gemini/
+.copilot/
+*.code-workspace
+
+# Logs y volcados de depuración
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Entorno y dependencias de Node / TypeScript
+node_modules/
+dist/
+build/
+out/
+.next/
+.nuxt/
+coverage/
+*.tsbuildinfo
+.npm
+.yarn/
