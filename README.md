@@ -184,8 +184,7 @@ El motor evalúa las respuestas mediante funciones puras sin efectos secundarios
 | **R5** | Integración con Servicio de IA | Llaves solo en servidor. **Filtro preventivo:** No envía datos personales/financieros al servicio externo. |
 | **R6** | Propagación de Identidad | El nombre y descripción sanitizada se propagan íntegramente a todos los documentos del paquete. |
 | **R7** | Criticidad Alta | Exige definición de RTO/RPO, política de respaldos antes de piloto e inicio de sesión mandatorio. |
-| **R8** | Soporte Multitecnología en `.gitignore` | Excluye secretos (`.env`) y configuraciones de IA (`AGENTS.md`, `.cursor/`, etc.). Soporta **10 tecnologías de backend**: |
-| | | • **5 directas en interfaz:** Python, TypeScript, Java, C#, Go.<br>• **5 en menú desplegable:** Kotlin, PHP, Ruby, Rust, Other (con soporte retrocompatible). |
+| **R8** | Soporte Multitecnología en `.gitignore` | Excluye secretos (`.env`) y configuraciones de IA (`AGENTS.md`, `.cursor/`, etc.). Soporta 10 tecnologías de backend organizadas en 5 directas en interfaz (Python, TypeScript, Java, C#, Go) y 5 en menú desplegable (Kotlin, PHP, Ruby, Rust, Other con soporte retrocompatible). |
 | **R9** | Relevancia Estricta de Secciones | Solo se redactan lineamientos para integraciones activamente seleccionadas (cero secciones vacías). |
 
 ---
