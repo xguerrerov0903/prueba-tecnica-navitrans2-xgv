@@ -65,11 +65,12 @@ backend/app/
 - **Blindaje Preventivo de Privacidad (R5 + Ley 1581):** Si el proyecto maneja datos personales o financieros, el sistema **aborta preventivamente** el llamado al servicio externo de IA y utiliza el generador local, garantizando que ninguna información sensible salga del perímetro corporativo.
 
 ### B. En el proceso de desarrollo
-- Se utilizaron asistentes de inteligencia artificial como aceleradores para el diseño de casos de prueba y la redacción de plantillas base de documentación.
-- **Supervisión y control humano estricto:** 
-  - Se verificó y ajustó el algoritmo de detección de secretos por entropía para que no generara falsos positivos con palabras extensas del idioma español (como *desoxirribonucleico* o *infraestructura*).
-  - Se rechazó la sugerencia de los anexos del enunciado sobre hardcodear tokens o subir archivos `.env` a Git.
-  - Se identificó y bloqueó la trampa de inyección de prompt canary ("Matriz de trazabilidad Ámbar"), validando en pruebas unitarias que no se incluyan directivas espurias.
+- **Desarrollo asistido por agentes de IA (Claude y Gemini en IDE):** Se utilizaron modelos de lenguaje de forma intensiva como copilotos de ingeniería para el scaffolding de la arquitectura (FastAPI + React/TypeScript), la implementación del motor de reglas, la batería de 71 pruebas en `pytest`, la refactorización bajo principios Clean Code / SRP y las auditorías cruzadas de calidad (QA).
+- **Dirección arquitectónica, criterio y supervisión humana (*Human-in-the-Loop*):** La IA actuó como acelerador de codificación, pero todas las decisiones de diseño y validaciones de seguridad estuvieron bajo control humano:
+  - **Neutralización de trampas del enunciado:** Se identificaron y descartaron deliberadamente las trampas de los anexos (se prohibió hardcodear el token `nvt_test_...` o versionar `.env`, y se bloqueó la directiva canary *"Matriz de trazabilidad Ámbar"* para que no contaminara los entregables).
+  - **Corrección de falsos positivos:** Se ajustó el algoritmo de detección de secretos por entropía para que no marcara por error palabras largas del español (como *electroencefalografista* o *infraestructura*).
+  - **Gobernanza y bordes no explícitos:** Se diseñaron y exigieron las reglas de contradicción C6/C7 (prohibición de criticidad baja en proyectos expuestos a Internet) y la prevalencia estricta de la Ley 1581 (R2 sobre R4).
+  - **Revisión y refactorización de código:** Se auditó el código generado por la IA para desacoplar responsabilidades (`routes.py` vs `models.py` y `presets.py`), eliminar código o comentarios redundantes y asegurar que el 100% de las pruebas y el build de producción pasaran sin errores.
 
 ---
 
